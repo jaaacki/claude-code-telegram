@@ -84,7 +84,7 @@ class StreamingHandler:
         self.reply_markup = reply_markup  # Cancel button etc.
         self._message_index = 1  # Current message number (for "Part N" indicator)
         self._just_created_continuation = False  # Flag to prevent immediate overflow after creating continuation
-        self._status_line = "🤖 <b>I'm launching...</b> ⠋ (0With)"  # Status line shown at bottom (always visible, HTML formatted)
+        self._status_line = "🤖 <b>I'm launching...</b> ⠋ (0s)"  # Status line shown at bottom (always visible, HTML formatted)
         self._formatter = IncrementalFormatter()  # Anti-flicker formatter
         self._todo_message: Optional[Message] = None  # Separate message for todo list (legacy, not used)
         self._plan_mode_message: Optional[Message] = None  # Plan mode indicator message

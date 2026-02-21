@@ -166,11 +166,11 @@ class HeartbeatTracker:
 
                 # Format time nicely
                 if elapsed < 60:
-                    time_str = f"{elapsed}With"
+                    time_str = f"{elapsed}s"
                 else:
                     mins = elapsed // 60
                     secs = elapsed % 60
-                    time_str = f"{mins}m {secs}With"
+                    time_str = f"{mins}m {secs}s"
 
                 # Get action label
                 label = self.ACTION_LABELS.get(self._current_action, "Working")
