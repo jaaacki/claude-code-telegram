@@ -167,6 +167,13 @@ class OAuthLoginSession:
         try:
             logger.info(f"[{self.user_id}] Received OAuth code, injecting via loopback interface...")
             
+            oauth_state = getattr(self, 'oauth_state', '')
+            if "#" in code:
+                code_parts = code.split("#", 1)
+                code = code_parts[0]
+                oauth_state = code_parts[1]
+                logger.info(f"[{self.user_id}] Extracted state from code fragment")
+            
             # Find the port the CLI is listening on
             port = None
             try:
@@ -192,10 +199,10 @@ class OAuthLoginSession:
                 logger.warning(f"[{self.user_id}] Failed to find loopback port: {e}")
 
             success_injected = False
-            if port and hasattr(self, 'oauth_state'):
+            if port and oauth_state:
                 import urllib.request
                 try:
-                    callback_url = f"http://[::1]:{port}/callback?code={code}&state={self.oauth_state}"
+                    callback_url = f"http://[::1]:{port}/callback?code={code}&state={oauth_state}"
                     logger.info(f"[{self.user_id}] Hitting internal CLI callback: {callback_url}")
                     # Usually returns 302 or similar, so we catch HTTPError which is still a success for injecting the code
                     import urllib.error
@@ -212,7 +219,7 @@ class OAuthLoginSession:
                         success_injected = True
                 except Exception as e:
                     logger.warning(f"[{self.user_id}] IPv6 callback failed: {e}. Trying IPv4...")
-                    callback_url = f"http://127.0.0.1:{port}/callback?code={code}&state={self.oauth_state}"
+                    callback_url = f"http://127.0.0.1:{port}/callback?code={code}&state={oauth_state}"
                     try:
                         import urllib.error
                         req = urllib.request.Request(
