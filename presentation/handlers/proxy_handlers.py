@@ -14,8 +14,8 @@ from presentation.keyboards.keyboards import Keyboards
 logger = logging.getLogger(__name__)
 
 
-# State для хранения промежуточных данных настройки прокси
-# Структура: {user_id: {"type": "http", "host": "...", "port": 123, "step": "host|credentials"}}
+# State for storing intermediate proxy settings data
+# Structure: {user_id: {"type": "http", "host": "...", "port": 123, "step": "host|credentials"}}
 proxy_setup_state: Dict[int, Dict] = {}
 
 
@@ -104,10 +104,10 @@ class ProxyHandlers:
         proxy_setup_state[user_id]["step"] = "host"  # Expecting host:port input
 
         await callback.message.edit_text(
-            f"✅ Выбран тип: <b>{proxy_type.upper()}</b>\n\n"
-            "Шаг 2: Отправьте адрес и порт прокси\n\n"
-            "Формат: <code>host:port</code>\n"
-            "Например: <code>148.253.208.124:3128</code>",
+            f"✅ Type selected: <b>{proxy_type.upper()}</b>\n\n"
+            "Step 2: Send proxy address and port\n\n"
+            "Format: <code>host:port</code>\n"
+            "For example: <code>148.253.208.124:3128</code>",
             parse_mode="HTML"
         )
         await callback.answer()
@@ -117,7 +117,7 @@ class ProxyHandlers:
         user_id = message.from_user.id
 
         if user_id not in proxy_setup_state:
-            await message.answer("❌ Сессия настройки истекла. Начните заново через /settings")
+            await message.answer("❌ The setup session has expired. Start again in /settings")
             return
 
         text = message.text.strip()
@@ -197,12 +197,12 @@ class ProxyHandlers:
         except (ValueError, AttributeError) as e:
             logger.debug(f"Proxy input parse error: {e}")
             await message.answer(
-                "❌ Неверный формат!\n\n"
-                "Поддерживаемые форматы:\n"
+                "❌ Invalid format!\n\n"
+                "Supported Formats:\n"
                 "• <code>host:port</code>\n"
                 "• <code>http://host:port</code>\n"
                 "• <code>http://user:pass@host:port</code>\n\n"
-                "Например:\n"
+                "For example:\n"
                 "• <code>148.253.208.124:3128</code>\n"
                 "• <code>http://proxyuser:pass@148.253.208.124:3128</code>",
                 parse_mode="HTML"
@@ -218,14 +218,14 @@ class ProxyHandlers:
         user_id = callback.from_user.id
 
         if user_id not in proxy_setup_state:
-            await callback.answer("❌ Сессия истекла", show_alert=True)
+            await callback.answer("❌ Session expired", show_alert=True)
             return
 
         if needs_auth:
             proxy_setup_state[user_id]["step"] = "credentials"  # Expecting credentials input
             await callback.message.edit_text(
-                "🔐 <b>Авторизация</b>\n\n"
-                "Отправьте логин и пароль в формате:\n"
+                "🔐 <b>Authorization</b>\n\n"
+                "Send your login and password in the format:\n"
                 "<code>username:password</code>",
                 parse_mode="HTML"
             )
@@ -298,7 +298,7 @@ class ProxyHandlers:
         telegram_user_id = UserId(user_id)
 
         if user_id not in proxy_setup_state:
-            await callback.answer("❌ Сессия истекла", show_alert=True)
+            await callback.answer("❌ Session expired", show_alert=True)
             return
 
         state = proxy_setup_state[user_id]
@@ -360,7 +360,7 @@ class ProxyHandlers:
         except Exception as e:
             logger.error(f"Error setting up proxy: {e}")
             await callback.message.edit_text(
-                f"❌ Ошибка настройки прокси:\n{str(e)}"
+                f"❌ Proxy setting error:\n{str(e)}"
             )
 
         await callback.answer()
@@ -372,21 +372,21 @@ class ProxyHandlers:
         proxy_config = await self.proxy_service.get_effective_proxy(user_id)
 
         if not proxy_config:
-            await callback.answer("❌ Прокси не настроен", show_alert=True)
+            await callback.answer("❌ Proxy not configured", show_alert=True)
             return
 
-        await callback.answer("🧪 Тестирую прокси...")
+        await callback.answer("🧪 Testing proxy...")
 
         success, message = await self.proxy_service.test_proxy(proxy_config)
 
         if success:
             await callback.message.answer(
-                f"✅ <b>Тест успешен</b>\n\n{message}",
+                f"✅ <b>Test successful</b>\n\n{message}",
                 parse_mode="HTML"
             )
         else:
             await callback.message.answer(
-                f"❌ <b>Тест не прошел</b>\n\n{message}",
+                f"❌ <b>Test failed</b>\n\n{message}",
                 parse_mode="HTML"
             )
 
@@ -397,7 +397,7 @@ class ProxyHandlers:
         await self.proxy_service.disable_user_proxy(user_id)
 
         await callback.message.edit_text(
-            "✅ Прокси отключен"
+            "✅ Proxy disabled"
         )
         await callback.answer()
 
@@ -411,16 +411,16 @@ class ProxyHandlers:
 
         if proxy_config:
             await callback.message.edit_text(
-                f"✅ <b>Прокси сохранён</b>\n\n"
-                f"Тип: {proxy_config.proxy_type.value.upper()}\n"
-                f"Адрес: {proxy_config.host}:{proxy_config.port}\n"
-                f"Авторизация: {'✓' if proxy_config.username else '✗'}",
+                f"✅ <b>Proxy saved</b>\n\n"
+                f"Type: {proxy_config.proxy_type.value.upper()}\n"
+                f"Address: {proxy_config.host}:{proxy_config.port}\n"
+                f"Authorization: {'✓' if proxy_config.username else '✗'}",
                 parse_mode="HTML"
             )
         else:
-            await callback.message.edit_text("✅ Настройки сохранены")
+            await callback.message.edit_text("✅ Settings saved")
 
-        await callback.answer("✅ Сохранено")
+        await callback.answer("✅ Saved")
 
     async def handle_proxy_change(self, callback: CallbackQuery, **kwargs) -> None:
         """Go back to proxy setup to change settings"""
@@ -440,7 +440,7 @@ class ProxyHandlers:
         await self.proxy_service.disable_user_proxy(user_id_vo)
 
         await callback.message.edit_text(
-            "❌ Настройка прокси отменена"
+            "❌ Proxy setting canceled"
         )
         await callback.answer()
 
@@ -479,19 +479,19 @@ def register_proxy_handlers(dp, handlers: ProxyHandlers):
 
     # === CALLBACK HANDLERS ===
 
-    # Callback для меню настроек прокси
+    # Callback for the proxy settings menu
     dp.callback_query.register(
         handlers.handle_proxy_menu,
         F.data == "menu:proxy"
     )
 
-    # Callback для начала настройки
+    # Callback to start setting up
     dp.callback_query.register(
         handlers.handle_proxy_setup,
         F.data == "proxy:setup"
     )
 
-    # Callback для выбора типа прокси - нужен wrapper для извлечения параметра
+    # Callback to select the proxy type - needed wrapper to retrieve parameter
     async def handle_type(c):
         proxy_type = c.data.split(":")[2]
         await handlers.handle_proxy_type_selection(c, proxy_type)
@@ -501,7 +501,7 @@ def register_proxy_handlers(dp, handlers: ProxyHandlers):
         F.data.startswith("proxy:type:")
     )
 
-    # Callback для выбора авторизации
+    # Callback to select authorization
     async def handle_auth(c):
         with_auth = c.data.split(":")[2] == "yes"
         await handlers.handle_proxy_auth_selection(c, with_auth)
@@ -511,7 +511,7 @@ def register_proxy_handlers(dp, handlers: ProxyHandlers):
         F.data.startswith("proxy:auth:")
     )
 
-    # Callback для выбора области (scope)
+    # Callback to select an area (scope)
     async def handle_scope(c):
         is_global = c.data.split(":")[2] == "global"
         await handlers.handle_proxy_scope_selection(c, is_global)
@@ -521,31 +521,31 @@ def register_proxy_handlers(dp, handlers: ProxyHandlers):
         F.data.startswith("proxy:scope:")
     )
 
-    # Callback для теста прокси
+    # Callback for proxy test
     dp.callback_query.register(
         handlers.handle_proxy_test,
         F.data == "proxy:test"
     )
 
-    # Callback для отключения прокси
+    # Callback to disable proxy
     dp.callback_query.register(
         handlers.handle_proxy_disable,
         F.data == "proxy:disable"
     )
 
-    # Callback для сохранения прокси (подтверждение после теста)
+    # Callback to save the proxy (confirmation after the test)
     dp.callback_query.register(
         handlers.handle_proxy_save,
         F.data == "proxy:save"
     )
 
-    # Callback для изменения настроек прокси
+    # Callback to change proxy settings
     dp.callback_query.register(
         handlers.handle_proxy_change,
         F.data == "proxy:change"
     )
 
-    # Callback для отмены настройки прокси
+    # Callback to cancel proxy settings
     dp.callback_query.register(
         handlers.handle_proxy_cancel,
         F.data == "proxy:cancel"

@@ -47,9 +47,9 @@ class QuestionRequest:
 @dataclass
 class UserSessionState:
     """
-    Вся информация о сессии пользователя в одном месте.
+    All information about the user session in one place.
 
-    Thread-safe container для всех state operations.
+    Thread-safe container for everyone state operations.
     """
     user_id: int
 
@@ -99,12 +99,12 @@ class UserSessionState:
 
 class SafeStatefulSDKService:
     """
-    Thread-safe SDK service с улучшенным управлением состоянием.
+    Thread-safe SDK service with improved state management.
 
-    Исправляет проблемы:
-    - Race conditions в dict operations
-    - Memory leaks (автоматическая очистка)
-    - Potential deadlocks (RLock вместо Lock)
+    Fixes problems:
+    - Race conditions V dict operations
+    - Memory leaks (automatic cleaning)
+    - Potential deadlocks (RLock instead of Lock)
     """
 
     def __init__(
@@ -129,13 +129,13 @@ class SafeStatefulSDKService:
         self.proxy_service = proxy_service
         self.session_timeout = session_timeout
 
-        # Единый dict для всех состояний (thread-safe)
+        # Single dict for all conditions (thread-safe)
         self._user_states: dict[int, UserSessionState] = {}
 
-        # Reentrant lock для предотвращения deadlocks
+        # Reentrant lock to prevent deadlocks
         self._state_lock = asyncio.RLock()
 
-        # Active clients and tasks (не критично для race conditions)
+        # Active clients and tasks (not critical for race conditions)
         self._clients: dict[int, object] = {}  # ClaudeSDKClient
         self._tasks: dict[int, asyncio.Task] = {}
 
@@ -145,17 +145,17 @@ class SafeStatefulSDKService:
     @asynccontextmanager
     async def _get_user_state(self, user_id: int, auto_create: bool = True):
         """
-        Thread-safe доступ к состоянию пользователя.
+        Thread-safe access to user state.
 
         Args:
-            user_id: ID пользователя
-            auto_create: Создавать ли новое состояние
+            user_id: ID user
+            auto_create: Should I create a new state?
 
         Yields:
-            UserSessionState: Состояние пользователя
+            UserSessionState: User State
         """
         async with self._state_lock:
-            # Auto-cleanup старых/неактивных состояний
+            # Auto-cleanup old/inactive states
             await self._cleanup_stale_states()
 
             # Get or create state
@@ -170,7 +170,7 @@ class SafeStatefulSDKService:
             yield state
 
     async def _cleanup_stale_states(self):
-        """Очистка неактивных состояний"""
+        """Clearing inactive states"""
         now = datetime.now()
         to_remove = []
 
@@ -186,13 +186,13 @@ class SafeStatefulSDKService:
             logger.debug(f"Cleaned up stale state for user {user_id}")
 
     async def start_cleanup_task(self):
-        """Запуск фоновой задачи очистки"""
+        """Run a background cleanup task"""
         if self._cleanup_task is None or self._cleanup_task.done():
             self._cleanup_task = asyncio.create_task(self._cleanup_loop())
             logger.info("Started state cleanup task")
 
     async def _cleanup_loop(self):
-        """Фоновый цикл очистки"""
+        """Background cleaning cycle"""
         while True:
             try:
                 await asyncio.sleep(300)  # Every 5 minutes
@@ -206,7 +206,7 @@ class SafeStatefulSDKService:
     # === Permission Management ===
 
     async def set_permission_request(self, user_id: int, request: PermissionRequest):
-        """Thread-safe установка permission request"""
+        """Thread-safe installation permission request"""
         async with self._get_user_state(user_id) as state:
             state.permission_request = request
             state.permission_response = None
@@ -214,10 +214,10 @@ class SafeStatefulSDKService:
             logger.debug(f"[{user_id}] Set permission request: {request.tool_name}")
 
     async def wait_for_permission_response(self, user_id: int, timeout: float = 300.0) -> Optional[bool]:
-        """Thread-safe ожидание ответа на permission"""
+        """Thread-safe waiting for a response to permission"""
         try:
             async with self._get_user_state(user_id, auto_create=False) as state:
-await asyncio.wait_for(state.permission_event.wait(), timeout=timeout)
+                await asyncio.wait_for(state.permission_event.wait(), timeout=timeout)
                 return state.permission_response
         except asyncio.TimeoutError:
             logger.warning(f"[{user_id}] Permission request timed out")
@@ -226,7 +226,7 @@ await asyncio.wait_for(state.permission_event.wait(), timeout=timeout)
             return None
 
     async def submit_permission_response(self, user_id: int, approved: bool):
-        """Thread-safe отправка ответа на permission"""
+        """Thread-safe sending a response to permission"""
         try:
             async with self._get_user_state(user_id, auto_create=False) as state:
                 state.permission_response = approved
@@ -238,7 +238,7 @@ await asyncio.wait_for(state.permission_event.wait(), timeout=timeout)
     # === Question Management ===
 
     async def set_question_request(self, user_id: int, request: QuestionRequest):
-        """Thread-safe установка question request"""
+        """Thread-safe installation question request"""
         async with self._get_user_state(user_id) as state:
             state.question_request = request
             state.question_response = None
@@ -246,7 +246,7 @@ await asyncio.wait_for(state.permission_event.wait(), timeout=timeout)
             logger.debug(f"[{user_id}] Set question request")
 
     async def wait_for_question_response(self, user_id: int, timeout: float = 300.0) -> Optional[str]:
-        """Thread-safe ожидание ответа на question"""
+        """Thread-safe waiting for a response to question"""
         try:
             async with self._get_user_state(user_id, auto_create=False) as state:
                 await asyncio.wait_for(state.question_event.wait(), timeout=timeout)
@@ -258,7 +258,7 @@ await asyncio.wait_for(state.permission_event.wait(), timeout=timeout)
             return None
 
     async def submit_question_response(self, user_id: int, response: str):
-        """Thread-safe отправка ответа на question"""
+        """Thread-safe sending a response to question"""
         try:
             async with self._get_user_state(user_id, auto_create=False) as state:
                 state.question_response = response
@@ -270,14 +270,14 @@ await asyncio.wait_for(state.permission_event.wait(), timeout=timeout)
     # === Plan Management ===
 
     async def set_plan_request(self, user_id: int):
-        """Thread-safe установка plan request"""
+        """Thread-safe installation plan request"""
         async with self._get_user_state(user_id) as state:
             state.plan_event.clear()
             state.plan_response = None
             logger.debug(f"[{user_id}] Set plan request")
 
     async def wait_for_plan_response(self, user_id: int, timeout: float = 600.0) -> Optional[str]:
-        """Thread-safe ожидание ответа на plan"""
+        """Thread-safe waiting for a response to plan"""
         try:
             async with self._get_user_state(user_id, auto_create=False) as state:
                 await asyncio.wait_for(state.plan_event.wait(), timeout=timeout)
@@ -289,7 +289,7 @@ await asyncio.wait_for(state.permission_event.wait(), timeout=timeout)
             return None
 
     async def submit_plan_response(self, user_id: int, response: str):
-        """Thread-safe отправка ответа на plan"""
+        """Thread-safe sending a response to plan"""
         try:
             async with self._get_user_state(user_id, auto_create=False) as state:
                 state.plan_response = response
@@ -301,13 +301,13 @@ await asyncio.wait_for(state.permission_event.wait(), timeout=timeout)
     # === Task Management ===
 
     async def start_task(self, user_id: int, task_id: str):
-        """Thread-safe начало задачи"""
+        """Thread-safe start of task"""
         async with self._get_user_state(user_id) as state:
             state.reset_for_new_task(task_id)
             logger.info(f"[{user_id}] Started task {task_id}")
 
     async def complete_task(self, user_id: int, status: str):
-        """Thread-safe завершение задачи"""
+        """Thread-safe completing a task"""
         try:
             async with self._get_user_state(user_id, auto_create=False) as state:
                 state.task_status = status
@@ -316,7 +316,7 @@ await asyncio.wait_for(state.permission_event.wait(), timeout=timeout)
             logger.warning(f"[{user_id}] No task to complete")
 
     async def cancel_task(self, user_id: int):
-        """Thread-safe отмена задачи"""
+        """Thread-safe cancel task"""
         try:
             async with self._get_user_state(user_id, auto_create=False) as state:
                 state.task_status = TaskStatus.CANCELLED
@@ -326,7 +326,7 @@ await asyncio.wait_for(state.permission_event.wait(), timeout=timeout)
             logger.warning(f"[{user_id}] No task to cancel")
 
     async def get_task_status(self, user_id: int) -> Optional[str]:
-        """Thread-safe получение статуса задачи"""
+        """Thread-safe getting task status"""
         try:
             async with self._get_user_state(user_id, auto_create=False) as state:
                 return state.task_status
@@ -336,7 +336,7 @@ await asyncio.wait_for(state.permission_event.wait(), timeout=timeout)
     # === Utility Methods ===
 
     async def get_state_info(self, user_id: int) -> Optional[dict]:
-        """Thread-safe получение информации о состоянии"""
+        """Thread-safe obtaining status information"""
         try:
             async with self._get_user_state(user_id, auto_create=False) as state:
                 return {

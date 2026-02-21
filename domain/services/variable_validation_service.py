@@ -76,25 +76,25 @@ class VariableValidationService:
         normalized = name.strip().upper()
 
         if not normalized:
-            return ValidationResult.invalid("Имя переменной не может быть пустым")
+            return ValidationResult.invalid("Variable name cannot be empty")
 
         if len(normalized) > MAX_VAR_NAME_LENGTH:
             return ValidationResult.invalid(
-                f"Имя переменной не должно превышать {MAX_VAR_NAME_LENGTH} символов"
+                f"The variable name must not exceed {MAX_VAR_NAME_LENGTH} characters"
             )
 
         if not self.NAME_PATTERN.match(normalized):
             return ValidationResult.invalid(
-                "Имя переменной должно:\n"
-                "• Начинаться с буквы (A-Z)\n"
-                "• Содержать только буквы, цифры и _\n\n"
-                "Например: GITLAB_TOKEN, API_KEY, PROJECT_STACK"
+                "The variable name must:\n"
+                "• Start with a letter (A-Z)\n"
+                "• Contain only letters, numbers and _\n\n"
+                "For example: GITLAB_TOKEN, API_KEY, PROJECT_STACK"
             )
 
         if normalized in RESERVED_NAMES:
             return ValidationResult.invalid(
-                f"'{normalized}' является зарезервированным именем.\n"
-                f"Выберите другое имя."
+                f"'{normalized}' is a reserved name.\n"
+                f"Choose a different name."
             )
 
         return ValidationResult.valid(normalized)
@@ -117,15 +117,15 @@ class VariableValidationService:
         stripped = value.strip()
 
         if not stripped:
-            return ValidationResult.invalid("Значение переменной не может быть пустым")
+            return ValidationResult.invalid("Variable value cannot be empty")
 
         if len(stripped) > MAX_VAR_VALUE_LENGTH:
             return ValidationResult.invalid(
-                f"Значение не должно превышать {MAX_VAR_VALUE_LENGTH} символов"
+                f"The value should not exceed {MAX_VAR_VALUE_LENGTH} characters"
             )
 
         if "\x00" in stripped:
-            return ValidationResult.invalid("Значение содержит недопустимые символы")
+            return ValidationResult.invalid("Value contains invalid characters")
 
         return ValidationResult.valid(stripped)
 
@@ -147,7 +147,7 @@ class VariableValidationService:
 
         if len(stripped) > MAX_VAR_DESC_LENGTH:
             return ValidationResult.invalid(
-                f"Описание не должно превышать {MAX_VAR_DESC_LENGTH} символов"
+                f"The description should not exceed {MAX_VAR_DESC_LENGTH} characters"
             )
 
         return ValidationResult.valid(stripped)

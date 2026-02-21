@@ -321,4 +321,5 @@ def register_handlers(router: Router, handlers: MessageCoordinator) -> None:
     # Document and photo handlers now check for media_group_id internally
     router.message.register(handlers.handle_document, F.document, StateFilter(None))
     router.message.register(handlers.handle_photo, F.photo, StateFilter(None))
-    router.message.register(handlers.handle_text, F.text, StateFilter(None))
+    # Text handler - exclude commands (messages starting with /) so Command handlers work
+    router.message.register(handlers.handle_text, F.text & ~F.text.startswith("/"), StateFilter(None))

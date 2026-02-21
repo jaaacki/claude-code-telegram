@@ -67,7 +67,7 @@ class HeartbeatTracker:
     """Periodic status updates during long operations.
 
     Shows elapsed time and current action with animated spinner.
-    Интервал = 2 секунды, синхронизирован с координатором.
+    Interval = 2 seconds, synchronized with coordinator.
     """
 
     # Braille spinner animation (smooth rotating dots)
@@ -89,24 +89,24 @@ class HeartbeatTracker:
 
     # Action labels in Russian
     ACTION_LABELS = {
-        "thinking": "Думаю",
-        "reading": "Читаю",
-        "writing": "Пишу",
-        "editing": "Редактирую",
-        "searching": "Ищу",
-        "executing": "Выполняю",
-        "planning": "Планирую",
-        "analyzing": "Анализирую",
-        "waiting": "Жду ответа",
-        "default": "Работаю",
+        "thinking": "Think",
+        "reading": "I'm reading",
+        "writing": "I'm writing",
+        "editing": "Editing",
+        "searching": "looking for",
+        "executing": "Executing",
+        "planning": "I'm planning",
+        "analyzing": "Analyzing",
+        "waiting": "I'm waiting for an answer",
+        "default": "Working",
     }
 
-    # Интервал heartbeat = 2 секунды (синхронизирован с координатором)
+    # Interval heartbeat = 2 seconds (synchronized with coordinator)
     DEFAULT_INTERVAL = 2.0
 
     def __init__(self, streaming: "StreamingHandler", interval: float = DEFAULT_INTERVAL):
         self.streaming = streaming
-        self.interval = max(interval, self.DEFAULT_INTERVAL)  # Не меньше 2 секунд!
+        self.interval = max(interval, self.DEFAULT_INTERVAL)  # No less 2 seconds!
         self.start_time = time.time()
         self.is_running = False
         self._task: Optional[asyncio.Task] = None
@@ -152,7 +152,7 @@ class HeartbeatTracker:
                 pass
 
     async def _loop(self):
-        """Periodic status update loop - каждые 2 секунды."""
+        """Periodic status update loop - every 2 seconds."""
         while self.is_running:
             try:
                 elapsed = int(time.time() - self.start_time)
@@ -166,14 +166,14 @@ class HeartbeatTracker:
 
                 # Format time nicely
                 if elapsed < 60:
-                    time_str = f"{elapsed}с"
+                    time_str = f"{elapsed}With"
                 else:
                     mins = elapsed // 60
                     secs = elapsed % 60
-                    time_str = f"{mins}м {secs}с"
+                    time_str = f"{mins}m {secs}With"
 
                 # Get action label
-                label = self.ACTION_LABELS.get(self._current_action, "Работаю")
+                label = self.ACTION_LABELS.get(self._current_action, "Working")
 
                 # Build status line with HTML formatting (stable, no flickering):
                 # emoji <b>action</b> spinner (time) <i>detail</i>
@@ -182,7 +182,7 @@ class HeartbeatTracker:
                 else:
                     status = f"{emoji} <b>{label}...</b> {spinner} ({time_str})"
 
-                # set_status() вызывает _do_update() -> координатор (2с интервал)
+                # set_status() causes _do_update() -> coordinator (2with interval)
                 await self.streaming.set_status(status)
                 await asyncio.sleep(self.interval)
             except asyncio.CancelledError:
@@ -323,7 +323,7 @@ class FileChangeTracker:
         if not self._changes:
             return ""
 
-        lines = ["📊 <b>Изменённые файлы:</b>\n"]
+        lines = ["📊 <b>Changed files:</b>\n"]
 
         total_added = 0
         total_removed = 0
@@ -372,7 +372,7 @@ class FileChangeTracker:
                 if total_str:
                     total_str += " "
                 total_str += f"<code>-{total_removed}</code>"
-            lines.append(f"\n<i>Итого: {len(self._changes)} файл(ов), {total_str}</i>")
+            lines.append(f"\n<i>Total: {len(self._changes)} file(s)), {total_str}</i>")
 
         return "\n".join(lines)
 

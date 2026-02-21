@@ -128,17 +128,17 @@ class AIRequestHandler(BaseMessageHandler):
     async def _on_text(self, user_id: int, text: str):
         """Handle streaming text output.
 
-        ВАЖНО: TextBlock от Claude — это ОСНОВНОЙ ответ (content), не thinking!
-        ThinkingBlock — это отдельный тип, который приходит в on_thinking.
+        IMPORTANT: TextBlock from Claude — this is the BASIC answer (content), Not thinking!
+        ThinkingBlock — this is a separate type that comes in on_thinking.
 
-        Step streaming mode: текст идёт в buffer через append(),
-        а UI state синхронизируется при добавлении tools через sync_from_buffer().
+        Step streaming mode: the text goes to buffer through append(),
+        A UI state synced when added tools through sync_from_buffer().
         """
         streaming = self.user_state.get_streaming_handler(user_id)
 
         if streaming:
-            # Текст ВСЕГДА идёт в основной буфер — это ответ Claude!
-            # Step streaming и обычный режим используют одинаковую логику
+            # Text ALWAYS goes to the main buffer — this is the answer Claude!
+            # Step streaming and normal mode use the same logic
             await streaming.append(text)
 
         # Update heartbeat to show Claude is thinking/writing
@@ -268,10 +268,10 @@ class AIRequestHandler(BaseMessageHandler):
         # Check YOLO mode from user_state
         if self.user_state.is_yolo_mode(user_id):
             streaming = self.user_state.get_streaming_handler(user_id)
-            # В step streaming mode не показываем "Авто-одобрено" - step handler уже показывает операции
+            # IN step streaming mode do not show "Auto-approved"" - step handler already shows operations
             if streaming and not self.user_state.is_step_streaming_mode(user_id):
                 truncated = details[:100] + "..." if len(details) > 100 else details
-                await streaming.append(f"\n**Авто-одобрено:** `{tool_name}`\n```\n{truncated}\n```\n")
+                await streaming.append(f"\n**Auto-approved:** `{tool_name}`\n```\n{truncated}\n```\n")
             return True
 
         session = self.user_state.get_claude_session(user_id)
@@ -280,12 +280,12 @@ class AIRequestHandler(BaseMessageHandler):
         if session:
             session.set_waiting_approval(request_id, tool_name, details)
 
-        text = f"<b>Запрос разрешения</b>\n\n"
-        text += f"<b>Инструмент:</b> <code>{html.escape(tool_name)}</code>\n"
+        text = f"<b>Request permission</b>\n\n"
+        text += f"<b>Tool:</b> <code>{html.escape(tool_name)}</code>\n"
         if details:
             display_details = details if len(details) < 500 else details[:500] + "..."
             # Escape HTML entities to prevent parse errors (e.g., <<'EOF' -> &lt;&lt;'EOF')
-            text += f"<b>Детали:</b>\n<pre>{html.escape(display_details)}</pre>"
+            text += f"<b>Details:</b>\n<pre>{html.escape(display_details)}</pre>"
 
         await message.answer(
             text,
@@ -301,7 +301,7 @@ class AIRequestHandler(BaseMessageHandler):
                 await asyncio.wait_for(event.wait(), timeout=PERMISSION_TIMEOUT_SECONDS)
                 approved = self.hitl_manager.get_permission_response(user_id)
             except asyncio.TimeoutError:
-                await message.answer("Время ожидания истекло. Отклоняю.")
+                await message.answer("The waiting time has expired. I reject.")
                 approved = False
 
             if session:
@@ -322,7 +322,7 @@ class AIRequestHandler(BaseMessageHandler):
 
         self.hitl_manager.set_question_context(user_id, request_id, question, options)
 
-        text = f"<b>Вопрос</b>\n\n{html.escape(question)}"
+        text = f"<b>Question</b>\n\n{html.escape(question)}"
 
         if options:
             await message.answer(
@@ -332,7 +332,7 @@ class AIRequestHandler(BaseMessageHandler):
             )
         else:
             self.hitl_manager.set_expecting_answer(user_id, True)
-            await message.answer(f"<b>Вопрос</b>\n\n{html.escape(question)}\n\nВведите ваш ответ:", parse_mode="HTML")
+            await message.answer(f"<b>Question</b>\n\n{html.escape(question)}\n\nEnter your answer:", parse_mode="HTML")
 
         event = self.hitl_manager.get_question_event(user_id)
         if event:
@@ -342,7 +342,7 @@ class AIRequestHandler(BaseMessageHandler):
                 await asyncio.wait_for(event.wait(), timeout=QUESTION_TIMEOUT_SECONDS)
                 answer = self.hitl_manager.get_question_response(user_id)
             except asyncio.TimeoutError:
-                await message.answer("Время ожидания ответа истекло.")
+                await message.answer("Response timed out.")
                 answer = ""
 
             if session:
@@ -368,20 +368,20 @@ class AIRequestHandler(BaseMessageHandler):
     async def _on_thinking(self, user_id: int, thinking: str):
         """Handle thinking output.
 
-        ThinkingBlock — это внутренние рассуждения Claude (extended thinking).
-        В step streaming mode показываем в сворачиваемом блоке.
+        ThinkingBlock — this is internal reasoning Claude (extended thinking).
+        IN step streaming mode shown in a collapsible block.
         """
         streaming = self.user_state.get_streaming_handler(user_id)
         if not streaming or not thinking:
             return
 
-        # Step streaming mode: показываем thinking в сворачиваемом блоке
+        # Step streaming mode: show thinking in a collapsible block
         if self.user_state.is_step_streaming_mode(user_id):
             step_handler = self._get_step_handler(user_id)
             if step_handler:
                 await step_handler.on_thinking(thinking)
         else:
-            # Обычный режим - показываем как курсив
+            # Normal mode - shown as italics
             preview = thinking[:200] + "..." if len(thinking) > 200 else thinking
             await streaming.append(f"\n*{preview}*\n")
 
@@ -395,7 +395,7 @@ class AIRequestHandler(BaseMessageHandler):
         message: Message
     ):
         """Handle permission request from SDK"""
-        # В step streaming mode показываем ожидание разрешения в основном сообщении
+        # IN step streaming mode show the pending permission in the main message
         if self.user_state.is_step_streaming_mode(user_id):
             step_handler = self._get_step_handler(user_id)
             if step_handler:
@@ -403,12 +403,12 @@ class AIRequestHandler(BaseMessageHandler):
 
         if self.user_state.is_yolo_mode(user_id):
             streaming = self.user_state.get_streaming_handler(user_id)
-            # В step streaming mode не показываем "Авто-одобрено" - step handler уже показывает операции
+            # IN step streaming mode do not show "Auto-approved"" - step handler already shows operations
             if streaming and not self.user_state.is_step_streaming_mode(user_id):
                 truncated = details[:100] + "..." if len(details) > 100 else details
-                await streaming.append(f"\n**Авто-одобрено:** `{tool_name}`\n```\n{truncated}\n```\n")
+                await streaming.append(f"\n**Auto-approved:** `{tool_name}`\n```\n{truncated}\n```\n")
 
-            # В step streaming mode обновляем статус "Ожидаю" -> "Выполняю"
+            # IN step streaming mode update the status "Waiting" -> "Executing"
             if self.user_state.is_step_streaming_mode(user_id):
                 step_handler = self._get_step_handler(user_id)
                 if step_handler:
@@ -424,12 +424,12 @@ class AIRequestHandler(BaseMessageHandler):
         if session:
             session.set_waiting_approval(request_id, tool_name, details)
 
-        text = f"<b>Запрос разрешения</b>\n\n"
-        text += f"<b>Инструмент:</b> <code>{html.escape(tool_name)}</code>\n"
+        text = f"<b>Request permission</b>\n\n"
+        text += f"<b>Tool:</b> <code>{html.escape(tool_name)}</code>\n"
         if details:
             display_details = details if len(details) < 500 else details[:500] + "..."
             # Escape HTML entities to prevent parse errors (e.g., <<'EOF' -> &lt;&lt;'EOF')
-            text += f"<b>Детали:</b>\n<pre>{html.escape(display_details)}</pre>"
+            text += f"<b>Details:</b>\n<pre>{html.escape(display_details)}</pre>"
 
         perm_msg = await message.answer(
             text,
@@ -455,7 +455,7 @@ class AIRequestHandler(BaseMessageHandler):
 
         self.hitl_manager.set_question_context(user_id, request_id, question, options)
 
-        text = f"<b>Вопрос</b>\n\n{html.escape(question)}"
+        text = f"<b>Question</b>\n\n{html.escape(question)}"
 
         if options:
             q_msg = await message.answer(
@@ -466,7 +466,7 @@ class AIRequestHandler(BaseMessageHandler):
             self.hitl_manager.set_question_context(user_id, request_id, question, options, q_msg)
         else:
             self.hitl_manager.set_expecting_answer(user_id, True)
-            q_msg = await message.answer(f"<b>Вопрос</b>\n\n{html.escape(question)}\n\nВведите ваш ответ:", parse_mode="HTML")
+            q_msg = await message.answer(f"<b>Question</b>\n\n{html.escape(question)}\n\nEnter your answer:", parse_mode="HTML")
             self.hitl_manager.set_question_context(user_id, request_id, question, options, q_msg)
 
     # Copied from legacy messages.py:1221-1268
@@ -503,12 +503,12 @@ class AIRequestHandler(BaseMessageHandler):
 
         if plan_content:
             if len(plan_content) > 3500:
-                plan_content = plan_content[:3500] + "\n\n... (план сокращён)"
+                plan_content = plan_content[:3500] + "\n\n... (plan reduced)"
             # Escape HTML entities in plan content to prevent parse errors
             escaped_content = html.escape(plan_content)
-            text = f"<b>📋 План готов к выполнению</b>\n\n<pre>{escaped_content}</pre>"
+            text = f"<b>📋 The plan is ready to be executed</b>\n\n<pre>{escaped_content}</pre>"
         else:
-            text = "<b>📋 План готов к выполнению</b>\n\n<i>Содержимое плана недоступно</i>"
+            text = "<b>📋 The plan is ready to be executed</b>\n\n<i>Plan content not available</i>"
 
         plan_msg = await message.answer(
             text,
@@ -525,28 +525,28 @@ class AIRequestHandler(BaseMessageHandler):
         perm_msg = self.hitl_manager.get_permission_message(user_id)
         streaming = self.user_state.get_streaming_handler(user_id)
 
-        # В step streaming mode обновляем строку ожидания
+        # IN step streaming mode update the wait line
         if self.user_state.is_step_streaming_mode(user_id) and approved:
             step_handler = self._get_step_handler(user_id)
             if step_handler:
-                # Получаем имя инструмента из HITL контекста
+                # We get the tool name from HITL context
                 tool_name = self.hitl_manager.get_pending_tool_name(user_id) or "tool"
                 await step_handler.on_permission_granted(tool_name)
 
         if perm_msg:
-            # В step streaming mode удаляем сообщение о разрешении - информация уже в основном сообщении
+            # IN step streaming mode delete the permission message - the information is already in the main message
             if self.user_state.is_step_streaming_mode(user_id):
                 try:
                     await perm_msg.delete()
                 except Exception as e:
                     logger.debug(f"Could not delete permission message: {e}")
             elif streaming:
-                # В обычном режиме - редактируем сообщение
-                status = "✅ Одобрено" if approved else "❌ Отклонено"
+                # In normal mode - edit the message
+                status = "✅ Approved" if approved else "❌ Rejected"
                 try:
                     await perm_msg.edit_text(status, parse_mode=None)
                     streaming.current_message = perm_msg
-                    streaming.buffer = f"{status}\n\nПродолжаю...\n"
+                    streaming.buffer = f"{status}\n\nI continue...\n"
                     streaming.is_finalized = False
                 except Exception as e:
                     logger.debug(f"Could not edit permission message: {e}")
@@ -562,9 +562,9 @@ class AIRequestHandler(BaseMessageHandler):
         if q_msg and streaming:
             short_answer = answer[:50] + "..." if len(answer) > 50 else answer
             try:
-                await q_msg.edit_text(f"Ответ: {short_answer}\n\nПродолжаю...", parse_mode=None)
+                await q_msg.edit_text(f"Answer: {short_answer}\n\nI continue...", parse_mode=None)
                 streaming.current_message = q_msg
-                streaming.buffer = f"Ответ: {short_answer}\n\nПродолжаю...\n"
+                streaming.buffer = f"Answer: {short_answer}\n\nI continue...\n"
                 streaming.is_finalized = False
             except Exception as e:
                 logger.debug(f"Could not edit question message: {e}")
@@ -579,7 +579,7 @@ class AIRequestHandler(BaseMessageHandler):
 
         if result.cancelled:
             if streaming:
-                await streaming.finalize("**Задача отменена**")
+                await streaming.finalize("**Task canceled**")
                 # Show file changes even on cancel (user might want to see what was done)
                 await streaming.show_file_changes_summary()
             if session:
@@ -639,7 +639,7 @@ class AIRequestHandler(BaseMessageHandler):
 
             if result.error and not result.cancelled:
                 await message.answer(
-                    f"<b>Завершено с ошибкой:</b>\n<pre>{html.escape(result.error[:1000])}</pre>",
+                    f"<b>Completed with an error:</b>\n<pre>{html.escape(result.error[:1000])}</pre>",
                     parse_mode="HTML"
                 )
 

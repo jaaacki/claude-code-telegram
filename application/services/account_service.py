@@ -53,9 +53,9 @@ class ClaudeModel(str, Enum):
     def get_description(cls, model: str) -> str:
         """Get model description"""
         descriptions = {
-            cls.OPUS: "Самая мощная модель, лучшая для сложных задач",
-            cls.SONNET: "Баланс между скоростью и качеством (рекомендуется)",
-            cls.HAIKU: "Быстрая модель для простых задач",
+            cls.OPUS: "The most powerful model, best for complex tasks",
+            cls.SONNET: "Balance between speed and quality (recommended)",
+            cls.HAIKU: "Fast model for simple tasks",
         }
         return descriptions.get(model, "")
 
@@ -197,7 +197,7 @@ class AccountService:
             if not self.has_valid_credentials():
                 logger.warning(f"[{user_id}] Attempted to switch to Claude Account without valid credentials")
                 settings = await self.get_settings(user_id)
-                return False, settings, "❌ Нет файла с учётными данными или токен истёк. Загрузите credentials.json или войдите через OAuth."
+                return False, settings, "❌ There is no file with credentials or the token has expired. Download credentials.json or login via OAuth."
 
         settings = await self.get_settings(user_id)
         settings.auth_mode = mode
@@ -335,9 +335,9 @@ class AccountService:
 
         if settings.auth_mode == AuthMode.CLAUDE_ACCOUNT:
             models = [
-                {"id": ClaudeModel.OPUS.value, "name": "Opus 4.5", "desc": "Самая мощная модель"},
-                {"id": ClaudeModel.SONNET.value, "name": "Sonnet 4.5", "desc": "Баланс скорости и качества (рекомендуется)"},
-                {"id": ClaudeModel.HAIKU.value, "name": "Haiku 4", "desc": "Быстрая модель"},
+                {"id": ClaudeModel.OPUS.value, "name": "Opus 4.5", "desc": "The most powerful model"},
+                {"id": ClaudeModel.SONNET.value, "name": "Sonnet 4.5", "desc": "Balance speed and quality (recommended)"},
+                {"id": ClaudeModel.HAIKU.value, "name": "Haiku 4", "desc": "Fast model"},
             ]
             for m in models:
                 m["is_selected"] = settings.model == m["id"]
@@ -372,19 +372,19 @@ class AccountService:
         default = os.environ.get("ANTHROPIC_MODEL")
 
         if haiku:
-            models.append({"id": haiku, "name": self._format_model_name(haiku), "desc": "Быстрая модель"})
+            models.append({"id": haiku, "name": self._format_model_name(haiku), "desc": "Fast model"})
         if sonnet and sonnet != haiku:
-            models.append({"id": sonnet, "name": self._format_model_name(sonnet), "desc": "Сбалансированная модель"})
+            models.append({"id": sonnet, "name": self._format_model_name(sonnet), "desc": "Balanced model"})
         if opus and opus not in (haiku, sonnet):
-            models.append({"id": opus, "name": self._format_model_name(opus), "desc": "Мощная модель"})
+            models.append({"id": opus, "name": self._format_model_name(opus), "desc": "Powerful model"})
         if default and default not in (haiku, sonnet, opus):
-            models.append({"id": default, "name": self._format_model_name(default), "desc": "Модель по умолчанию"})
+            models.append({"id": default, "name": self._format_model_name(default), "desc": "Default model"})
 
         # Fallback to hardcoded z.ai defaults
         if not models:
             models = [
-                {"id": "glm-4.5-air", "name": "GLM 4.5 Air", "desc": "Быстрая модель"},
-                {"id": "glm-4.7", "name": "GLM 4.7", "desc": "Мощная модель"},
+                {"id": "glm-4.5-air", "name": "GLM 4.5 Air", "desc": "Fast model"},
+                {"id": "glm-4.7", "name": "GLM 4.7", "desc": "Powerful model"},
             ]
 
         return models
@@ -441,7 +441,7 @@ class AccountService:
         await self.repository.save(settings)
 
         logger.info(f"[{user_id}] z.ai API key saved successfully")
-        return True, "✅ API ключ z.ai сохранён и проверен!", settings
+        return True, "✅ API key z.ai saved and checked!", settings
 
     async def delete_zai_api_key(self, user_id: int) -> tuple[bool, str]:
         """
@@ -455,14 +455,14 @@ class AccountService:
         """
         settings = await self.get_settings(user_id)
         if not settings.zai_api_key:
-            return False, "❌ API ключ не найден"
+            return False, "❌ API key not found"
 
         settings.zai_api_key = None
         settings.updated_at = datetime.now()
         await self.repository.save(settings)
 
         logger.info(f"[{user_id}] z.ai API key deleted")
-        return True, "✅ API ключ удалён"
+        return True, "✅ API key deleted"
 
     async def has_zai_api_key(self, user_id: int) -> bool:
         """Check if user has a z.ai API key configured."""
@@ -511,23 +511,23 @@ class AccountService:
                 if response.status_code == 200:
                     return True, ""
                 elif response.status_code == 401:
-                    return False, "❌ Неверный API ключ (401 Unauthorized)"
+                    return False, "❌ Incorrect API key (401 Unauthorized)"
                 elif response.status_code == 403:
-                    return False, "❌ Доступ запрещён (403 Forbidden). Проверьте права ключа."
+                    return False, "❌ Access denied (403 Forbidden). Check the key permissions."
                 elif response.status_code == 429:
                     # Rate limited but key is valid
                     return True, ""
                 else:
                     error_text = response.text[:200]
-                    return False, f"❌ Ошибка API: {response.status_code}\n{error_text}"
+                    return False, f"❌ Error API: {response.status_code}\n{error_text}"
 
         except httpx.TimeoutException:
-            return False, "❌ Таймаут при проверке ключа. Попробуйте позже."
+            return False, "❌ Timeout when checking the key. Try again later."
         except httpx.ConnectError:
-            return False, "❌ Не удалось подключиться к z.ai API. Проверьте интернет."
+            return False, "❌ Failed to connect to z.ai API. Check the Internet."
         except Exception as e:
             logger.error(f"Error validating z.ai API key: {e}")
-            return False, f"❌ Ошибка проверки: {str(e)}"
+            return False, f"❌ Validation error: {str(e)}"
 
     def get_credentials_info(self) -> CredentialsInfo:
         """Get info about current Claude credentials"""
@@ -790,12 +790,12 @@ class AccountService:
             if os.path.exists(CREDENTIALS_PATH):
                 os.remove(CREDENTIALS_PATH)
                 logger.info(f"Deleted credentials file: {CREDENTIALS_PATH}")
-                return True, "✅ Файл credentials.json удалён"
+                return True, "✅ File credentials.json deleted"
             else:
-                return False, "❌ Файл credentials.json не найден"
+                return False, "❌ File credentials.json not found"
         except Exception as e:
             logger.error(f"Error deleting credentials: {e}")
-            return False, f"❌ Ошибка удаления: {str(e)}"
+            return False, f"❌ Uninstall error: {str(e)}"
 
 
 # Import repository here to avoid circular imports

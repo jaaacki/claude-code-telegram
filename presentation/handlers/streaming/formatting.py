@@ -251,10 +251,10 @@ class StableHTMLFormatter:
         """
         Format markdown to valid HTML.
 
-        КРИТИЧЕСКОЕ ИЗМЕНЕНИЕ: Всегда форматирует ВЕСЬ текст!
-        - НЕ использует _find_stable_end() - это блокировало обновления
-        - markdown_to_html(is_streaming=True) сам обрабатывает незакрытые конструкции
-        - Координатор решает когда обновлять Telegram (каждые 2 сек)
+        CRITICAL CHANGE: Always formats ALL text!
+        - does NOT use _find_stable_end() - it blocked updates
+        - markdown_to_html(is_streaming=True) handles unclosed structures itself
+        - The coordinator decides when to update Telegram (every 2 sec)
 
         Args:
             raw_text: Full raw Markdown text
@@ -268,8 +268,8 @@ class StableHTMLFormatter:
         if not raw_text:
             return "", False
 
-        # КРИТИЧЕСКИЙ ФИКС: Всегда форматировать ВЕСЬ текст!
-        # is_streaming=True позволяет обрабатывать незакрытые конструкции
+        # CRITICAL FIX: Always format ALL text!
+        # is_streaming=True allows processing of unclosed structures
         html_text = markdown_to_html(raw_text, is_streaming=not is_final)
         html_text = prepare_html_for_telegram(html_text, is_final=is_final)
 

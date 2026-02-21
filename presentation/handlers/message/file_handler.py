@@ -63,7 +63,7 @@ class FileMessageHandler(BaseMessageHandler):
         filename: str,
         file_size: int,
         mime_type: str,
-        file_type_label: str = "Файл"
+        file_type_label: str = "File"
     ) -> None:
         """
         Unified handler for document and photo messages.
@@ -75,18 +75,18 @@ class FileMessageHandler(BaseMessageHandler):
 
         user = await self.bot_service.authorize_user(user_id)
         if not user:
-            await message.answer("Вы не авторизованы для использования этого бота.")
+            await message.answer("You are not authorized to use this bot.")
             return
 
         if self._is_task_running(user_id):
             await message.answer(
-                "Задача уже выполняется.\n\nДождитесь завершения или используйте /cancel",
+                "The task is already running.\n\nWait for completion or use /cancel",
                 reply_markup=Keyboards.claude_cancel(user_id)
             )
             return
 
         if not self.file_processor_service:
-            await message.answer("Обработка файлов недоступна")
+            await message.answer("File processing unavailable")
             return
 
         # Validate file
@@ -101,7 +101,7 @@ class FileMessageHandler(BaseMessageHandler):
             file_content = await bot.download_file(file.file_path)
         except Exception as e:
             logger.error(f"Error downloading {file_type_label.lower()}: {e}")
-            await message.answer(f"Ошибка скачивания: {e}")
+            await message.answer(f"Download error: {e}")
             return
 
         # Process file
@@ -110,7 +110,7 @@ class FileMessageHandler(BaseMessageHandler):
         )
 
         if processed.error:
-            await message.answer(f"Ошибка обработки: {processed.error}")
+            await message.answer(f"Processing error: {processed.error}")
             return
 
         caption = message.caption or ""
@@ -148,12 +148,12 @@ class FileMessageHandler(BaseMessageHandler):
 
             file_info = f"{processed.filename} ({processed.size_bytes // 1024} KB)"
             await message.answer(
-                f"<b>Команда плагина:</b> <code>{skill_command}</code>\n"
-                f"{file_info}\n\nПередаю в Claude Code...",
+                f"<b>Plugin command:</b> <code>{skill_command}</code>\n"
+                f"{file_info}\n\nI pass it on to Claude Code...",
                 parse_mode="HTML"
             )
             if not self.ai_request_handler:
-                await message.answer("⚠️ Обработчик запросов недоступен")
+                await message.answer("⚠️ Request handler unavailable")
                 return
             await self.ai_request_handler.handle_text(message, prompt_override=enriched_prompt, force_new_session=True)
         else:
@@ -164,7 +164,7 @@ class FileMessageHandler(BaseMessageHandler):
             )
             file_info = f"{processed.filename} ({processed.size_bytes // 1024} KB)"
             task_preview = caption[:50] + "..." if len(caption) > 50 else caption
-            await message.answer(f"Получен {file_type_label.lower()}: {file_info}\nЗадача: {task_preview}")
+            await message.answer(f"Received {file_type_label.lower()}: {file_info}\nTask: {task_preview}")
             await self._execute_task_with_prompt(message, enriched_prompt)
 
     async def _cache_file_for_reply(
@@ -175,19 +175,19 @@ class FileMessageHandler(BaseMessageHandler):
         user_id: int
     ) -> None:
         """Cache file and prompt user to reply with task."""
-        if file_type_label == "Изображение":
+        if file_type_label == "Image":
             bot_msg = await message.answer(
-                "<b>Изображение получено</b>\n\n"
-                "Сделайте <b>reply</b> на это сообщение с текстом задачи.",
+                "<b>Image received</b>\n\n"
+                "Do <b>reply</b> to this message with the task text.",
                 parse_mode="HTML"
             )
         else:
             bot_msg = await message.answer(
-                f"<b>Файл получен:</b> {processed.filename}\n"
-                f"<b>Размер:</b> {processed.size_bytes // 1024} KB\n"
-                f"<b>Тип:</b> {processed.file_type.value}\n\n"
-                f"Сделайте <b>reply</b> на это сообщение с текстом задачи\n"
-                f"или командой плагина (например, <code>/ralph-loop</code>)",
+                f"<b>File received:</b> {processed.filename}\n"
+                f"<b>Size:</b> {processed.size_bytes // 1024} KB\n"
+                f"<b>Type:</b> {processed.file_type.value}\n\n"
+                f"Do <b>reply</b> to this message with the task text\n"
+                f"or a plugin command (for example, <code>/ralph-loop</code>)",
                 parse_mode="HTML"
             )
 
@@ -245,7 +245,7 @@ class FileMessageHandler(BaseMessageHandler):
     async def _execute_task_with_prompt(self, message: Message, prompt: str) -> None:
         """Execute Claude task with given prompt"""
         if not self.ai_request_handler:
-            await message.answer("⚠️ Обработчик запросов недоступен")
+            await message.answer("⚠️ Request handler unavailable")
             return
         # Use prompt_override instead of modifying frozen Message object
         await self.ai_request_handler.handle_text(message, prompt_override=prompt)
@@ -263,7 +263,7 @@ class FileMessageHandler(BaseMessageHandler):
             filename=document.file_name or "unknown",
             file_size=document.file_size or 0,
             mime_type=document.mime_type,
-            file_type_label="Файл"
+            file_type_label="File"
         )
 
     # Copied from legacy messages.py:483-502
@@ -276,7 +276,7 @@ class FileMessageHandler(BaseMessageHandler):
         max_image_size = 5 * 1024 * 1024  # 5 MB
 
         if photo.file_size and photo.file_size > max_image_size:
-            await message.answer("Изображение слишком большое (максимум 5 MB)")
+            await message.answer("The image is too large (max. 5 MB)")
             return
 
         await self._handle_file_message(
@@ -285,7 +285,7 @@ class FileMessageHandler(BaseMessageHandler):
             filename=f"image_{photo.file_unique_id}.jpg",
             file_size=photo.file_size or 0,
             mime_type="image/jpeg",
-            file_type_label="Изображение"
+            file_type_label="Image"
         )
 
     def _is_task_running(self, user_id: int) -> bool:
@@ -341,18 +341,18 @@ class FileMessageHandler(BaseMessageHandler):
         # Authorize user
         user = await self.bot_service.authorize_user(user_id)
         if not user:
-            await first_message.answer("Вы не авторизованы для использования этого бота.")
+            await first_message.answer("You are not authorized to use this bot.")
             return
 
         # Check if task is already running
         if self._is_task_running(user_id):
             await first_message.answer(
-                "⏳ Задача уже выполняется. Дождитесь её завершения или используйте /cancel."
+                "⏳ The task is already running. Wait for it to complete or use /cancel."
             )
             return
 
         if not self.file_processor_service:
-            await first_message.answer("⚠️ Обработка файлов недоступна")
+            await first_message.answer("⚠️ File processing unavailable")
             return
 
         # Process all files in the group
@@ -367,7 +367,7 @@ class FileMessageHandler(BaseMessageHandler):
                 logger.error(f"Error processing file from media group: {e}")
 
         if not processed_files:
-            await first_message.answer("❌ Не удалось обработать файлы из альбома")
+            await first_message.answer("❌ Failed to process files from album")
             return
 
         logger.info(
@@ -441,9 +441,9 @@ class FileMessageHandler(BaseMessageHandler):
         task_preview = caption[:50] + "..." if len(caption) > 50 else caption
 
         await message.answer(
-            f"📎 Файлы: {files_summary}\n"
-            f"📝 Задача: {task_preview}\n\n"
-            f"⏳ Запускаю Claude Code..."
+            f"📎 Files: {files_summary}\n"
+            f"📝 Task: {task_preview}\n\n"
+            f"⏳ I'm launching Claude Code..."
         )
 
         # Execute task
@@ -472,9 +472,9 @@ class FileMessageHandler(BaseMessageHandler):
 
         # Send response with file list
         bot_msg = await message.answer(
-            f"📎 <b>Получено {len(files)} файлов</b> ({total_kb} KB):\n"
+            f"📎 <b>Received {len(files)} files</b> ({total_kb} KB):\n"
             f"{file_list}\n\n"
-            f"💡 Сделайте <b>reply</b> на это сообщение с текстом задачи.",
+            f"💡 Do <b>reply</b> to this message with the task text.",
             parse_mode="HTML"
         )
 

@@ -109,7 +109,7 @@ class MessageHandlers:
         self._plans = PlanApprovalManager()
         self._files = FileContextManager()
 
-        # === Message Batcher (объединяет несколько сообщений за 0.5с в один запрос) ===
+        # === Message Batcher (combines several messages into one 0.5with in one request) ===
         from presentation.middleware.message_batcher import MessageBatcher
         self._batcher = MessageBatcher(batch_delay=0.5)
 
@@ -335,7 +335,7 @@ class MessageHandlers:
         filename: str,
         file_size: int,
         mime_type: str,
-        file_type_label: str = "Файл"
+        file_type_label: str = "File"
     ) -> None:
         """
         Unified handler for document and photo messages.
@@ -347,18 +347,18 @@ class MessageHandlers:
 
         user = await self.bot_service.authorize_user(user_id)
         if not user:
-            await message.answer("Вы не авторизованы для использования этого бота.")
+            await message.answer("You are not authorized to use this bot.")
             return
 
         if self._is_task_running(user_id):
             await message.answer(
-                "Задача уже выполняется.\n\nДождитесь завершения или используйте /cancel",
+                "The task is already running.\n\nWait for completion or use /cancel",
                 reply_markup=Keyboards.claude_cancel(user_id)
             )
             return
 
         if not self.file_processor_service:
-            await message.answer("Обработка файлов недоступна")
+            await message.answer("File processing unavailable")
             return
 
         # Validate file
@@ -373,7 +373,7 @@ class MessageHandlers:
             file_content = await bot.download_file(file.file_path)
         except Exception as e:
             logger.error(f"Error downloading {file_type_label.lower()}: {e}")
-            await message.answer(f"Ошибка скачивания: {e}")
+            await message.answer(f"Download error: {e}")
             return
 
         # Process file
@@ -382,7 +382,7 @@ class MessageHandlers:
         )
 
         if processed.error:
-            await message.answer(f"Ошибка обработки: {processed.error}")
+            await message.answer(f"Processing error: {processed.error}")
             return
 
         caption = message.caption or ""
@@ -420,8 +420,8 @@ class MessageHandlers:
 
             file_info = f"{processed.filename} ({processed.size_bytes // 1024} KB)"
             await message.answer(
-                f"<b>Команда плагина:</b> <code>{skill_command}</code>\n"
-                f"{file_info}\n\nПередаю в Claude Code...",
+                f"<b>Plugin command:</b> <code>{skill_command}</code>\n"
+                f"{file_info}\n\nI pass it on to Claude Code...",
                 parse_mode="HTML"
             )
             await self.handle_text(message, prompt_override=enriched_prompt, force_new_session=True)
@@ -433,7 +433,7 @@ class MessageHandlers:
             )
             file_info = f"{processed.filename} ({processed.size_bytes // 1024} KB)"
             task_preview = caption[:50] + "..." if len(caption) > 50 else caption
-            await message.answer(f"Получен {file_type_label.lower()}: {file_info}\nЗадача: {task_preview}")
+            await message.answer(f"Received {file_type_label.lower()}: {file_info}\nTask: {task_preview}")
             await self._execute_task_with_prompt(message, enriched_prompt)
 
     async def _cache_file_for_reply(
@@ -444,19 +444,19 @@ class MessageHandlers:
         user_id: int
     ) -> None:
         """Cache file and prompt user to reply with task."""
-        if file_type_label == "Изображение":
+        if file_type_label == "Image":
             bot_msg = await message.answer(
-                "<b>Изображение получено</b>\n\n"
-                "Сделайте <b>reply</b> на это сообщение с текстом задачи.",
+                "<b>Image received</b>\n\n"
+                "Do <b>reply</b> to this message with the task text.",
                 parse_mode="HTML"
             )
         else:
             bot_msg = await message.answer(
-                f"<b>Файл получен:</b> {processed.filename}\n"
-                f"<b>Размер:</b> {processed.size_bytes // 1024} KB\n"
-                f"<b>Тип:</b> {processed.file_type.value}\n\n"
-                f"Сделайте <b>reply</b> на это сообщение с текстом задачи\n"
-                f"или командой плагина (например, <code>/ralph-loop</code>)",
+                f"<b>File received:</b> {processed.filename}\n"
+                f"<b>Size:</b> {processed.size_bytes // 1024} KB\n"
+                f"<b>Type:</b> {processed.file_type.value}\n\n"
+                f"Do <b>reply</b> to this message with the task text\n"
+                f"or a plugin command (for example, <code>/ralph-loop</code>)",
                 parse_mode="HTML"
             )
 
@@ -477,7 +477,7 @@ class MessageHandlers:
             filename=document.file_name or "unknown",
             file_size=document.file_size or 0,
             mime_type=document.mime_type,
-            file_type_label="Файл"
+            file_type_label="File"
         )
 
     async def handle_photo(self, message: Message) -> None:
@@ -489,7 +489,7 @@ class MessageHandlers:
         max_image_size = 5 * 1024 * 1024  # 5 MB
 
         if photo.file_size and photo.file_size > max_image_size:
-            await message.answer("Изображение слишком большое (максимум 5 MB)")
+            await message.answer("The image is too large (max. 5 MB)")
             return
 
         await self._handle_file_message(
@@ -498,7 +498,7 @@ class MessageHandlers:
             filename=f"image_{photo.file_unique_id}.jpg",
             file_size=photo.file_size or 0,
             mime_type="image/jpeg",
-            file_type_label="Изображение"
+            file_type_label="Image"
         )
 
     async def _extract_reply_file_context(
@@ -567,7 +567,7 @@ class MessageHandlers:
 
         user = await self.bot_service.authorize_user(user_id)
         if not user:
-            await message.answer("Вы не авторизованы для использования этого бота.")
+            await message.answer("You are not authorized to use this bot.")
             return
 
         # Load yolo_mode from DB if not already loaded
@@ -586,7 +586,7 @@ class MessageHandlers:
                 processed_file, message.text, working_dir=working_dir
             )
             task_preview = message.text[:50] + "..." if len(message.text) > 50 else message.text
-            await message.answer(f"📎 Файл: {processed_file.filename}\n📝 Задача: {task_preview}\n\n⏳ Запускаю Claude Code...")
+            await message.answer(f"📎 File: {processed_file.filename}\n📝 Task: {task_preview}\n\n⏳ I'm launching Claude Code...")
             # Execute task with file context and return
             await self.handle_text(message, prompt_override=enriched_prompt)
             return
@@ -601,12 +601,12 @@ class MessageHandlers:
                     processed_file, message.text, working_dir=working_dir
                 )
                 task_preview = message.text[:50] + "..." if len(message.text) > 50 else message.text
-                await message.answer(f"📎 Файл: {processed_file.filename}\n📝 Задача: {task_preview}\n\n⏳ Запускаю Claude Code...")
+                await message.answer(f"📎 File: {processed_file.filename}\n📝 Task: {task_preview}\n\n⏳ I'm launching Claude Code...")
                 # Execute task with file context and return
                 await self.handle_text(message, prompt_override=enriched_prompt)
                 return
 
-        # === SPECIAL INPUT MODES (не батчатся - обрабатываются сразу) ===
+        # === SPECIAL INPUT MODES (no batching - processed immediately) ===
         logger.debug(f"[{user_id}] Checking special input modes: "
                     f"expecting_answer={self._hitl.is_expecting_answer(user_id)}, "
                     f"expecting_clarification={self._hitl.is_expecting_clarification(user_id)}")
@@ -657,10 +657,10 @@ class MessageHandlers:
                     return
 
         # === MESSAGE BATCHING ===
-        # Объединяем несколько сообщений за 0.5с в один запрос
-        # НЕ батчим если: уже из батчера, есть prompt_override, или задача уже выполняется
+        # Combining multiple messages 0.5with in one request
+        # DO NOT batch if: already from the butcher, there is prompt_override, or the task is already running
         if not _from_batcher and not prompt_override and not self._is_task_running(user_id):
-            # Добавляем сообщение в batch
+            # Add a message to batch
             async def process_batched(first_msg: Message, combined_text: str):
                 await self.handle_text(
                     first_msg,
@@ -675,8 +675,8 @@ class MessageHandlers:
         # === CHECK IF TASK RUNNING ===
         if self._is_task_running(user_id):
             await message.answer(
-                "Задача уже выполняется.\n\n"
-                "Используйте кнопку отмены или /cancel чтобы остановить.",
+                "The task is already running.\n\n"
+                "Use the cancel button or /cancel to stop.",
                 reply_markup=Keyboards.claude_cancel(user_id)
             )
             return
@@ -762,7 +762,7 @@ class MessageHandlers:
         self._hitl.create_permission_event(user_id)
         self._hitl.create_question_event(user_id)
 
-        heartbeat = HeartbeatTracker(streaming, interval=2.0)  # 2 seconds - координатор обеспечивает rate limiting
+        heartbeat = HeartbeatTracker(streaming, interval=2.0)  # 2 seconds - coordinator provides rate limiting
         self._state.set_heartbeat(user_id, heartbeat)
         await heartbeat.start()
 
@@ -873,17 +873,17 @@ class MessageHandlers:
     async def _on_text(self, user_id: int, text: str):
         """Handle streaming text output.
 
-        ВАЖНО: TextBlock от Claude — это ОСНОВНОЙ ответ (content), не thinking!
-        ThinkingBlock — это отдельный тип, который приходит в on_thinking.
+        IMPORTANT: TextBlock from Claude — this is the BASIC answer (content), Not thinking!
+        ThinkingBlock — this is a separate type that comes in on_thinking.
 
-        Step streaming mode: текст идёт в buffer через append(),
-        а UI state синхронизируется при добавлении tools через sync_from_buffer().
+        Step streaming mode: the text goes to buffer through append(),
+        A UI state synced when added tools through sync_from_buffer().
         """
         streaming = self._state.get_streaming_handler(user_id)
 
         if streaming:
-            # Текст ВСЕГДА идёт в основной буфер — это ответ Claude!
-            # Step streaming и обычный режим используют одинаковую логику
+            # Text ALWAYS goes to the main buffer — this is the answer Claude!
+            # Step streaming and normal mode use the same logic
             await streaming.append(text)
 
         # Update heartbeat to show Claude is thinking/writing
@@ -1022,10 +1022,10 @@ class MessageHandlers:
         """Handle permission request (CLI mode)"""
         if self.is_yolo_mode(user_id):
             streaming = self._state.get_streaming_handler(user_id)
-            # В step streaming mode не показываем "Авто-одобрено" - step handler уже показывает операции
+            # IN step streaming mode do not show "Auto-approved"" - step handler already shows operations
             if streaming and not self.is_step_streaming_mode(user_id):
                 truncated = details[:100] + "..." if len(details) > 100 else details
-                await streaming.append(f"\n**Авто-одобрено:** `{tool_name}`\n```\n{truncated}\n```\n")
+                await streaming.append(f"\n**Auto-approved:** `{tool_name}`\n```\n{truncated}\n```\n")
             return True
 
         session = self._state.get_claude_session(user_id)
@@ -1034,12 +1034,12 @@ class MessageHandlers:
         if session:
             session.set_waiting_approval(request_id, tool_name, details)
 
-        text = f"<b>Запрос разрешения</b>\n\n"
-        text += f"<b>Инструмент:</b> <code>{html.escape(tool_name)}</code>\n"
+        text = f"<b>Request permission</b>\n\n"
+        text += f"<b>Tool:</b> <code>{html.escape(tool_name)}</code>\n"
         if details:
             display_details = details if len(details) < 500 else details[:500] + "..."
             # Escape HTML entities to prevent parse errors (e.g., <<'EOF' -> &lt;&lt;'EOF')
-            text += f"<b>Детали:</b>\n<pre>{html.escape(display_details)}</pre>"
+            text += f"<b>Details:</b>\n<pre>{html.escape(display_details)}</pre>"
 
         await message.answer(
             text,
@@ -1055,7 +1055,7 @@ class MessageHandlers:
                 await asyncio.wait_for(event.wait(), timeout=PERMISSION_TIMEOUT_SECONDS)
                 approved = self._hitl.get_permission_response(user_id)
             except asyncio.TimeoutError:
-                await message.answer("Время ожидания истекло. Отклоняю.")
+                await message.answer("The waiting time has expired. I reject.")
                 approved = False
 
             if session:
@@ -1075,7 +1075,7 @@ class MessageHandlers:
 
         self._hitl.set_question_context(user_id, request_id, question, options)
 
-        text = f"<b>Вопрос</b>\n\n{html.escape(question)}"
+        text = f"<b>Question</b>\n\n{html.escape(question)}"
 
         if options:
             await message.answer(
@@ -1085,7 +1085,7 @@ class MessageHandlers:
             )
         else:
             self._hitl.set_expecting_answer(user_id, True)
-            await message.answer(f"<b>Вопрос</b>\n\n{html.escape(question)}\n\nВведите ваш ответ:", parse_mode="HTML")
+            await message.answer(f"<b>Question</b>\n\n{html.escape(question)}\n\nEnter your answer:", parse_mode="HTML")
 
         event = self._hitl.get_question_event(user_id)
         if event:
@@ -1095,7 +1095,7 @@ class MessageHandlers:
                 await asyncio.wait_for(event.wait(), timeout=QUESTION_TIMEOUT_SECONDS)
                 answer = self._hitl.get_question_response(user_id)
             except asyncio.TimeoutError:
-                await message.answer("Время ожидания ответа истекло.")
+                await message.answer("Response timed out.")
                 answer = ""
 
             if session:
@@ -1119,20 +1119,20 @@ class MessageHandlers:
     async def _on_thinking(self, user_id: int, thinking: str):
         """Handle thinking output.
 
-        ThinkingBlock — это внутренние рассуждения Claude (extended thinking).
-        В step streaming mode показываем в сворачиваемом блоке.
+        ThinkingBlock — this is internal reasoning Claude (extended thinking).
+        IN step streaming mode shown in a collapsible block.
         """
         streaming = self._state.get_streaming_handler(user_id)
         if not streaming or not thinking:
             return
 
-        # Step streaming mode: показываем thinking в сворачиваемом блоке
+        # Step streaming mode: show thinking in a collapsible block
         if self.is_step_streaming_mode(user_id):
             step_handler = self._get_step_handler(user_id)
             if step_handler:
                 await step_handler.on_thinking(thinking)
         else:
-            # Обычный режим - показываем как курсив
+            # Normal mode - shown as italics
             preview = thinking[:200] + "..." if len(thinking) > 200 else thinking
             await streaming.append(f"\n*{preview}*\n")
 
@@ -1145,7 +1145,7 @@ class MessageHandlers:
         message: Message
     ):
         """Handle permission request from SDK"""
-        # В step streaming mode показываем ожидание разрешения в основном сообщении
+        # IN step streaming mode show the pending permission in the main message
         if self.is_step_streaming_mode(user_id):
             step_handler = self._get_step_handler(user_id)
             if step_handler:
@@ -1153,12 +1153,12 @@ class MessageHandlers:
 
         if self.is_yolo_mode(user_id):
             streaming = self._state.get_streaming_handler(user_id)
-            # В step streaming mode не показываем "Авто-одобрено" - step handler уже показывает операции
+            # IN step streaming mode do not show "Auto-approved"" - step handler already shows operations
             if streaming and not self.is_step_streaming_mode(user_id):
                 truncated = details[:100] + "..." if len(details) > 100 else details
-                await streaming.append(f"\n**Авто-одобрено:** `{tool_name}`\n```\n{truncated}\n```\n")
+                await streaming.append(f"\n**Auto-approved:** `{tool_name}`\n```\n{truncated}\n```\n")
 
-            # В step streaming mode обновляем статус "Ожидаю" -> "Выполняю"
+            # IN step streaming mode update the status "Waiting" -> "Executing"
             if self.is_step_streaming_mode(user_id):
                 step_handler = self._get_step_handler(user_id)
                 if step_handler:
@@ -1174,12 +1174,12 @@ class MessageHandlers:
         if session:
             session.set_waiting_approval(request_id, tool_name, details)
 
-        text = f"<b>Запрос разрешения</b>\n\n"
-        text += f"<b>Инструмент:</b> <code>{html.escape(tool_name)}</code>\n"
+        text = f"<b>Request permission</b>\n\n"
+        text += f"<b>Tool:</b> <code>{html.escape(tool_name)}</code>\n"
         if details:
             display_details = details if len(details) < 500 else details[:500] + "..."
             # Escape HTML entities to prevent parse errors (e.g., <<'EOF' -> &lt;&lt;'EOF')
-            text += f"<b>Детали:</b>\n<pre>{html.escape(display_details)}</pre>"
+            text += f"<b>Details:</b>\n<pre>{html.escape(display_details)}</pre>"
 
         perm_msg = await message.answer(
             text,
@@ -1204,7 +1204,7 @@ class MessageHandlers:
 
         self._hitl.set_question_context(user_id, request_id, question, options)
 
-        text = f"<b>Вопрос</b>\n\n{html.escape(question)}"
+        text = f"<b>Question</b>\n\n{html.escape(question)}"
 
         if options:
             q_msg = await message.answer(
@@ -1215,7 +1215,7 @@ class MessageHandlers:
             self._hitl.set_question_context(user_id, request_id, question, options, q_msg)
         else:
             self._hitl.set_expecting_answer(user_id, True)
-            q_msg = await message.answer(f"<b>Вопрос</b>\n\n{html.escape(question)}\n\nВведите ваш ответ:", parse_mode="HTML")
+            q_msg = await message.answer(f"<b>Question</b>\n\n{html.escape(question)}\n\nEnter your answer:", parse_mode="HTML")
             self._hitl.set_question_context(user_id, request_id, question, options, q_msg)
 
     async def _on_plan_request(
@@ -1251,12 +1251,12 @@ class MessageHandlers:
 
         if plan_content:
             if len(plan_content) > 3500:
-                plan_content = plan_content[:3500] + "\n\n... (план сокращён)"
+                plan_content = plan_content[:3500] + "\n\n... (plan reduced)"
             # Escape HTML entities in plan content to prevent parse errors
             escaped_content = html.escape(plan_content)
-            text = f"<b>📋 План готов к выполнению</b>\n\n<pre>{escaped_content}</pre>"
+            text = f"<b>📋 The plan is ready to be executed</b>\n\n<pre>{escaped_content}</pre>"
         else:
-            text = "<b>📋 План готов к выполнению</b>\n\n<i>Содержимое плана недоступно</i>"
+            text = "<b>📋 The plan is ready to be executed</b>\n\n<i>Plan content not available</i>"
 
         plan_msg = await message.answer(
             text,
@@ -1272,28 +1272,28 @@ class MessageHandlers:
         perm_msg = self._hitl.get_permission_message(user_id)
         streaming = self._state.get_streaming_handler(user_id)
 
-        # В step streaming mode обновляем строку ожидания
+        # IN step streaming mode update the wait line
         if self.is_step_streaming_mode(user_id) and approved:
             step_handler = self._get_step_handler(user_id)
             if step_handler:
-                # Получаем имя инструмента из HITL контекста
+                # We get the tool name from HITL context
                 tool_name = self._hitl.get_pending_tool_name(user_id) or "tool"
                 await step_handler.on_permission_granted(tool_name)
 
         if perm_msg:
-            # В step streaming mode удаляем сообщение о разрешении - информация уже в основном сообщении
+            # IN step streaming mode delete the permission message - the information is already in the main message
             if self.is_step_streaming_mode(user_id):
                 try:
                     await perm_msg.delete()
                 except Exception as e:
                     logger.debug(f"Could not delete permission message: {e}")
             elif streaming:
-                # В обычном режиме - редактируем сообщение
-                status = "✅ Одобрено" if approved else "❌ Отклонено"
+                # In normal mode - edit the message
+                status = "✅ Approved" if approved else "❌ Rejected"
                 try:
                     await perm_msg.edit_text(status, parse_mode=None)
                     streaming.current_message = perm_msg
-                    streaming.buffer = f"{status}\n\nПродолжаю...\n"
+                    streaming.buffer = f"{status}\n\nI continue...\n"
                     streaming.is_finalized = False
                 except Exception as e:
                     logger.debug(f"Could not edit permission message: {e}")
@@ -1308,9 +1308,9 @@ class MessageHandlers:
         if q_msg and streaming:
             short_answer = answer[:50] + "..." if len(answer) > 50 else answer
             try:
-                await q_msg.edit_text(f"Ответ: {short_answer}\n\nПродолжаю...", parse_mode=None)
+                await q_msg.edit_text(f"Answer: {short_answer}\n\nI continue...", parse_mode=None)
                 streaming.current_message = q_msg
-                streaming.buffer = f"Ответ: {short_answer}\n\nПродолжаю...\n"
+                streaming.buffer = f"Answer: {short_answer}\n\nI continue...\n"
                 streaming.is_finalized = False
             except Exception as e:
                 logger.debug(f"Could not edit question message: {e}")
@@ -1324,7 +1324,7 @@ class MessageHandlers:
 
         if result.cancelled:
             if streaming:
-                await streaming.finalize("**Задача отменена**")
+                await streaming.finalize("**Task canceled**")
                 # Show file changes even on cancel (user might want to see what was done)
                 await streaming.show_file_changes_summary()
             if session:
@@ -1384,7 +1384,7 @@ class MessageHandlers:
 
             if result.error and not result.cancelled:
                 await message.answer(
-                    f"<b>Завершено с ошибкой:</b>\n<pre>{html.escape(result.error[:1000])}</pre>",
+                    f"<b>Completed with an error:</b>\n<pre>{html.escape(result.error[:1000])}</pre>",
                     parse_mode="HTML"
                 )
 
@@ -1396,7 +1396,7 @@ class MessageHandlers:
         self._hitl.set_expecting_answer(user_id, False)
 
         answer = message.text
-        await message.answer(f"Ответ: {answer[:50]}...")
+        await message.answer(f"Answer: {answer[:50]}...")
 
         await self.handle_question_response(user_id, answer)
 
@@ -1416,14 +1416,14 @@ class MessageHandlers:
         logger.info(f"[{user_id}] handle_permission_response returned: {success}")
 
         if success:
-            await message.answer(f"💬 Уточнение отправлено: {preview}")
+            await message.answer(f"💬 Clarification sent: {preview}")
         else:
             # No active permission request - clarification was ignored
             logger.warning(f"[{user_id}] Clarification was not accepted - no active permission request")
             await message.answer(
-                f"⚠️ Нет активного запроса на подтверждение.\n\n"
-                f"Ваше уточнение: {preview}\n\n"
-                f"Отправьте это как новый запрос или дождитесь запроса от Claude.",
+                f"⚠️ No active confirmation request.\n\n"
+                f"Your clarification: {preview}\n\n"
+                f"Submit this as a new request or wait for a request from Claude.",
                 parse_mode=None
             )
 
@@ -1438,12 +1438,12 @@ class MessageHandlers:
         success = await self.handle_plan_response(user_id, f"clarify:{clarification}")
 
         if success:
-            await message.answer(f"💬 Уточнение плана отправлено: {preview}")
+            await message.answer(f"💬 Plan clarification sent: {preview}")
         else:
             await message.answer(
-                f"⚠️ Нет активного запроса на утверждение плана.\n\n"
-                f"Ваше уточнение: {preview}\n\n"
-                f"Отправьте это как новый запрос.",
+                f"⚠️ No active plan approval request.\n\n"
+                f"Your clarification: {preview}\n\n"
+                f"Submit this as a new request.",
                 parse_mode=None
             )
 
@@ -1455,7 +1455,7 @@ class MessageHandlers:
         path = message.text.strip()
         self.set_working_dir(user_id, path)
 
-        await message.answer(f"Рабочая папка установлена:\n{path}", parse_mode=None)
+        await message.answer(f"Working folder set:\n{path}", parse_mode=None)
 
     async def _handle_var_name_input(self, message: Message):
         """Handle variable name input during add flow"""
@@ -1465,7 +1465,7 @@ class MessageHandlers:
         result = self._variables.validate_name(var_name)
         if not result.is_valid:
             await message.answer(
-                f"Неверное имя переменной\n\n{result.error}",
+                f"Invalid variable name\n\n{result.error}",
                 parse_mode=None,
                 reply_markup=Keyboards.variable_cancel()
             )
@@ -1475,8 +1475,8 @@ class MessageHandlers:
         self._variables.move_to_value_step(user_id, result.normalized_name)
 
         await message.answer(
-            f"Введите значение для {result.normalized_name}:\n\n"
-            f"Например: glpat-xxxx или Python/FastAPI",
+            f"Enter a value for {result.normalized_name}:\n\n"
+            f"For example: glpat-xxxx or Python/FastAPI",
             parse_mode=None,
             reply_markup=Keyboards.variable_cancel()
         )
@@ -1521,10 +1521,10 @@ class MessageHandlers:
         self._variables.move_to_description_step(user_id, var_value)
 
         await message.answer(
-            f"Введите описание для {var_name}:\n\n"
-            f"Опишите, для чего эта переменная и как её использовать.\n"
-            f"Например: Токен GitLab для git push/pull\n\n"
-            f"Или нажмите кнопку, чтобы пропустить.",
+            f"Enter a description for {var_name}:\n\n"
+            f"Describe what this variable does and how to use it.\n"
+            f"For example: Token GitLab For git push/pull\n\n"
+            f"Or click the button to skip.",
             parse_mode=None,
             reply_markup=Keyboards.variable_skip_description()
         )
@@ -1556,7 +1556,7 @@ class MessageHandlers:
         user_id = message.from_user.id
 
         if not self.project_service or not self.context_service:
-            await message.answer("Сервисы не инициализированы")
+            await message.answer("Services are not initialized")
             self._variables.cancel(user_id)
             return
 
@@ -1566,13 +1566,13 @@ class MessageHandlers:
 
             project = await self.project_service.get_current(uid)
             if not project:
-                await message.answer("Нет активного проекта. Используйте /change")
+                await message.answer("No active project. Use /change")
                 self._variables.cancel(user_id)
                 return
 
             context = await self.context_service.get_current(project.id)
             if not context:
-                await message.answer("Нет активного контекста")
+                await message.answer("No active context")
                 self._variables.cancel(user_id)
                 return
 
@@ -1586,10 +1586,10 @@ class MessageHandlers:
             desc_info = f"\n{var_desc}" if var_desc else ""
 
             await message.answer(
-                f"Переменная создана\n\n"
+                f"Variable created\n\n"
                 f"{var_name} = {display_val}"
                 f"{desc_info}\n\n"
-                f"Всего переменных: {len(variables)}",
+                f"Total variables: {len(variables)}",
                 parse_mode=None,
                 reply_markup=Keyboards.variables_menu(
                     variables, project.name, context.name,
@@ -1599,7 +1599,7 @@ class MessageHandlers:
 
         except Exception as e:
             logger.error(f"Error saving variable: {e}")
-            await message.answer(f"Ошибка: {e}")
+            await message.answer(f"Error: {e}")
             self._variables.cancel(user_id)
 
 

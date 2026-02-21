@@ -65,10 +65,10 @@ class ProjectCallbackHandler(BaseCallbackHandler):
                     self.message_handlers.set_working_dir(user_id, path)
 
                 await callback.message.edit_text(
-                    f"📁 Рабочая папка установлена:\n{path}",
+                    f"📁 Working folder set:\n{path}",
                     parse_mode=None
                 )
-                await callback.answer(f"Проект: {path}")
+                await callback.answer(f"Project: {path}")
 
             elif action == "custom":
                 # Prompt for custom path input
@@ -76,14 +76,14 @@ class ProjectCallbackHandler(BaseCallbackHandler):
                     self.message_handlers.set_expecting_path(user_id, True)
 
                 await callback.message.edit_text(
-                    "📂 Введите путь к проекту:\n\nВведите полный путь к папке проекта.",
+                    "📂 Enter the project path:\n\nEnter the full path to the project folder.",
                     parse_mode=None
                 )
-                await callback.answer("Введите путь в чат")
+                await callback.answer("Enter the path to chat")
 
         except Exception as e:
             logger.error(f"Error handling project select: {e}")
-            await callback.answer(f"❌ Ошибка: {e}")
+            await callback.answer(f"❌ Error: {e}")
 
     async def handle_project_switch(self, callback: CallbackQuery) -> None:
         """Handle project switch (from /change command)."""
@@ -106,19 +106,19 @@ class ProjectCallbackHandler(BaseCallbackHandler):
                     self.message_handlers.set_working_dir(user_id, project.working_dir)
 
                 await callback.message.edit_text(
-                    f"✅ Переключено на проект:\n\n"
+                    f"✅ Switched to project:\n\n"
                     f"{project.name}\n"
-                    f"Путь: {project.working_dir}\n\n"
-                    f"Используйте /context list для просмотра контекстов.",
+                    f"Path: {project.working_dir}\n\n"
+                    f"Use /context list to view contexts.",
                     parse_mode=None
                 )
-                await callback.answer(f"Выбран {project.name}")
+                await callback.answer(f"Selected {project.name}")
             else:
-                await callback.answer("❌ Проект не найден")
+                await callback.answer("❌ Project not found")
 
         except Exception as e:
             logger.error(f"Error switching project: {e}")
-            await callback.answer(f"❌ Ошибка: {e}")
+            await callback.answer(f"❌ Error: {e}")
 
     # ============== Project Creation ==============
 
@@ -154,15 +154,15 @@ class ProjectCallbackHandler(BaseCallbackHandler):
 
             if folders:
                 text = (
-                    f"📂 <b>Обзор проектов</b>\n\n"
-                    f"Путь: <code>{root_path}</code>\n\n"
-                    f"Выберите папку для создания проекта:"
+                    f"📂 <b>Project overview</b>\n\n"
+                    f"Path: <code>{root_path}</code>\n\n"
+                    f"Select a folder to create the project:"
                 )
             else:
                 text = (
-                    f"📂 <b>Папки не найдены</b>\n\n"
-                    f"Путь: <code>{root_path}</code>\n\n"
-                    f"Сначала создайте папку с помощью Claude Code."
+                    f"📂 <b>No folders found</b>\n\n"
+                    f"Path: <code>{root_path}</code>\n\n"
+                    f"First create a folder using Claude Code."
                 )
 
             try:
@@ -179,7 +179,7 @@ class ProjectCallbackHandler(BaseCallbackHandler):
 
         except Exception as e:
             logger.error(f"Error browsing projects: {e}")
-            await callback.answer(f"❌ Ошибка: {e}")
+            await callback.answer(f"❌ Error: {e}")
 
     async def handle_project_folder(self, callback: CallbackQuery) -> None:
         """Handle folder selection - create project from folder."""
@@ -187,11 +187,11 @@ class ProjectCallbackHandler(BaseCallbackHandler):
         user_id = callback.from_user.id
 
         if not folder_path or not os.path.isdir(folder_path):
-            await callback.answer("❌ Неверная папка")
+            await callback.answer("❌ Invalid folder")
             return
 
         if not self.project_service:
-            await callback.answer("⚠️ Сервис проектов недоступен")
+            await callback.answer("⚠️ Project service is not available")
             return
 
         try:
@@ -213,25 +213,25 @@ class ProjectCallbackHandler(BaseCallbackHandler):
             # Create keyboard with project actions
             project_created_keyboard = InlineKeyboardMarkup(inline_keyboard=[
                 [
-                    InlineKeyboardButton(text="📁 К списку проектов", callback_data="project:back"),
-                    InlineKeyboardButton(text="📂 Главное меню", callback_data="menu:main")
+                    InlineKeyboardButton(text="📁 To the list of projects", callback_data="project:back"),
+                    InlineKeyboardButton(text="📂 Main menu", callback_data="menu:main")
                 ]
             ])
 
             await callback.message.edit_text(
-                f"✅ <b>Проект создан:</b>\n\n"
+                f"✅ <b>Project created:</b>\n\n"
                 f"📁 {project.name}\n"
-                f"📂 Путь: <code>{project.working_dir}</code>\n\n"
-                f"✨ Готово к работе! Отправьте первое сообщение.\n\n"
-                f"<i>Используйте кнопки ниже для навигации:</i>",
+                f"📂 Path: <code>{project.working_dir}</code>\n\n"
+                f"✨ Ready to go! Send your first message.\n\n"
+                f"<i>Use the buttons below to navigate:</i>",
                 parse_mode="HTML",
                 reply_markup=project_created_keyboard
             )
-            await callback.answer(f"✅ Создан {project.name}")
+            await callback.answer(f"✅ Created {project.name}")
 
         except Exception as e:
             logger.error(f"Error creating project from folder: {e}")
-            await callback.answer(f"❌ Ошибка: {e}")
+            await callback.answer(f"❌ Error: {e}")
 
     # ============== Folder Creation ==============
 
@@ -246,9 +246,9 @@ class ProjectCallbackHandler(BaseCallbackHandler):
         }
 
         text = (
-            "📁 <b>Создание папки проекта</b>\n\n"
-            "Введите название новой папки:\n"
-            "<i>(латиница, цифры, дефис, подчёркивание)</i>"
+            "📁 <b>Creating a Project Folder</b>\n\n"
+            "Enter the name of the new folder:\n"
+            "<i>(Latin, numbers, hyphen, underscore)</i>"
         )
 
         await callback.message.edit_text(
@@ -265,15 +265,15 @@ class ProjectCallbackHandler(BaseCallbackHandler):
         # Validate folder name
         if not re.match(r'^[a-zA-Z0-9_-]+$', folder_name):
             await message.reply(
-                "❌ Недопустимое имя папки.\n"
-                "Используйте только латиницу, цифры, дефис и подчёркивание."
+                "❌ Invalid folder name.\n"
+                "Use only Latin characters, numbers, hyphens and underscores."
             )
             return True  # Consumed, but keep waiting
 
         folder_path = f"/root/projects/{folder_name}"
 
         if os.path.exists(folder_path):
-            await message.reply(f"❌ Папка '{folder_name}' уже существует.")
+            await message.reply(f"❌ Folder '{folder_name}' already exists.")
             return True
 
         try:
@@ -295,28 +295,28 @@ class ProjectCallbackHandler(BaseCallbackHandler):
                 # Create keyboard with project actions
                 project_created_keyboard = InlineKeyboardMarkup(inline_keyboard=[
                     [
-                        InlineKeyboardButton(text="📁 К списку проектов", callback_data="project:back"),
-                        InlineKeyboardButton(text="📂 Главное меню", callback_data="menu:main")
+                        InlineKeyboardButton(text="📁 To the list of projects", callback_data="project:back"),
+                        InlineKeyboardButton(text="📂 Main menu", callback_data="menu:main")
                     ]
                 ])
 
                 await message.reply(
-                    f"✅ <b>Проект создан:</b>\n\n"
+                    f"✅ <b>Project created:</b>\n\n"
                     f"📁 {folder_name}\n"
-                    f"📂 Путь: <code>{folder_path}</code>\n\n"
-                    f"✨ Готово к работе! Отправьте первое сообщение.\n\n"
-                    f"<i>Используйте кнопки ниже для навигации:</i>",
+                    f"📂 Path: <code>{folder_path}</code>\n\n"
+                    f"✨ Ready to go! Send your first message.\n\n"
+                    f"<i>Use the buttons below to navigate:</i>",
                     parse_mode="HTML",
                     reply_markup=project_created_keyboard
                 )
             else:
-                await message.reply(f"✅ Папка создана: <code>{folder_path}</code>", parse_mode="HTML")
+                await message.reply(f"✅ Folder created: <code>{folder_path}</code>", parse_mode="HTML")
 
             return True
 
         except Exception as e:
             logger.error(f"Error creating folder: {e}")
-            await message.reply(f"❌ Ошибка создания папки: {e}")
+            await message.reply(f"❌ Folder creation error: {e}")
             return True
 
     # ============== Project Deletion ==============
@@ -337,18 +337,18 @@ class ProjectCallbackHandler(BaseCallbackHandler):
             project = await self.project_service.get_by_id(project_id)
 
             if not project:
-                await callback.answer("❌ Проект не найден")
+                await callback.answer("❌ Project not found")
                 return
 
             if int(project.user_id) != user_id:
-                await callback.answer("❌ Это не ваш проект")
+                await callback.answer("❌ This is not your project")
                 return
 
             text = (
-                f"⚠️ Удаление проекта\n\n"
-                f"Проект: {project.name}\n"
-                f"Путь: {project.working_dir}\n\n"
-                f"Выберите действие:"
+                f"⚠️ Deleting a project\n\n"
+                f"Project: {project.name}\n"
+                f"Path: {project.working_dir}\n\n"
+                f"Select action:"
             )
 
             await callback.message.edit_text(
@@ -360,7 +360,7 @@ class ProjectCallbackHandler(BaseCallbackHandler):
 
         except Exception as e:
             logger.error(f"Error showing delete confirmation: {e}")
-            await callback.answer(f"❌ Ошибка: {e}")
+            await callback.answer(f"❌ Error: {e}")
 
     async def handle_project_delete_confirm(self, callback: CallbackQuery) -> None:
         """Handle confirmed project deletion."""
@@ -381,11 +381,11 @@ class ProjectCallbackHandler(BaseCallbackHandler):
             project = await self.project_service.get_by_id(project_id)
 
             if not project:
-                await callback.answer("❌ Проект не найден")
+                await callback.answer("❌ Project not found")
                 return
 
             if int(project.user_id) != user_id:
-                await callback.answer("❌ Это не ваш проект")
+                await callback.answer("❌ This is not your project")
                 return
 
             project_name = project.name
@@ -395,7 +395,7 @@ class ProjectCallbackHandler(BaseCallbackHandler):
             deleted = await self.project_service.delete_project(uid, project_id)
 
             if not deleted:
-                await callback.answer("❌ Не удалось удалить проект")
+                await callback.answer("❌ Failed to delete project")
                 return
 
             # Delete files if requested
@@ -411,15 +411,15 @@ class ProjectCallbackHandler(BaseCallbackHandler):
             # Show result
             if files_deleted:
                 result_text = (
-                    f"✅ Проект удален полностью\n\n"
-                    f"Проект: {project_name}\n"
-                    f"Файлы удалены: {project_path}"
+                    f"✅ The project has been completely deleted\n\n"
+                    f"Project: {project_name}\n"
+                    f"Files deleted: {project_path}"
                 )
             else:
                 result_text = (
-                    f"✅ Проект удален из базы\n\n"
-                    f"Проект: {project_name}\n"
-                    f"Файлы сохранены: {project_path}"
+                    f"✅ The project has been removed from the database\n\n"
+                    f"Project: {project_name}\n"
+                    f"Files saved: {project_path}"
                 )
 
             # Show updated project list
@@ -428,15 +428,15 @@ class ProjectCallbackHandler(BaseCallbackHandler):
             current_id = current.id if current else None
 
             await callback.message.edit_text(
-                result_text + "\n\n📁 Ваши проекты:",
+                result_text + "\n\n📁 Your projects:",
                 parse_mode=None,
                 reply_markup=Keyboards.project_list(projects, current_id, show_back=True, back_to="menu:projects")
             )
-            await callback.answer(f"✅ Проект {project_name} удален")
+            await callback.answer(f"✅ Project {project_name} deleted")
 
         except Exception as e:
             logger.error(f"Error deleting project: {e}")
-            await callback.answer(f"❌ Ошибка: {e}")
+            await callback.answer(f"❌ Error: {e}")
 
     # ============== Navigation ==============
 
@@ -457,9 +457,9 @@ class ProjectCallbackHandler(BaseCallbackHandler):
             current_id = current.id if current else None
 
             if projects:
-                text = "📁 Ваши проекты:\n\nВыберите проект или создайте новый:"
+                text = "📁 Your projects:\n\nSelect a project or create a new one:"
             else:
-                text = "📁 Проекты не найдены\n\nСоздайте первый проект:"
+                text = "📁 No projects found\n\nCreate your first project:"
 
             await callback.message.edit_text(
                 text,
@@ -470,7 +470,7 @@ class ProjectCallbackHandler(BaseCallbackHandler):
 
         except Exception as e:
             logger.error(f"Error going back to project list: {e}")
-            await callback.answer(f"❌ Ошибка: {e}")
+            await callback.answer(f"❌ Error: {e}")
 
     # ============== File Browser (cd:*) ==============
 
@@ -486,12 +486,12 @@ class ProjectCallbackHandler(BaseCallbackHandler):
 
         # Validate path is within root
         if not self.file_browser_service.is_within_root(path):
-            await callback.answer("❌ Доступ запрещен")
+            await callback.answer("❌ Access denied")
             return
 
         # Check if directory exists
         if not os.path.isdir(path):
-            await callback.answer("❌ Папка не найдена")
+            await callback.answer("❌ Folder not found")
             return
 
         try:
@@ -509,7 +509,7 @@ class ProjectCallbackHandler(BaseCallbackHandler):
 
         except Exception as e:
             logger.error(f"Error navigating to {path}: {e}")
-            await callback.answer(f"❌ Ошибка: {e}")
+            await callback.answer(f"❌ Error: {e}")
 
     async def handle_cd_root(self, callback: CallbackQuery) -> None:
         """Handle going to root directory."""
@@ -533,11 +533,11 @@ class ProjectCallbackHandler(BaseCallbackHandler):
                 parse_mode=ParseMode.HTML,
                 reply_markup=Keyboards.file_browser(content)
             )
-            await callback.answer("🏠 Корень")
+            await callback.answer("🏠 Root")
 
         except Exception as e:
             logger.error(f"Error going to root: {e}")
-            await callback.answer(f"❌ Ошибка: {e}")
+            await callback.answer(f"❌ Error: {e}")
 
     async def handle_cd_select(self, callback: CallbackQuery) -> None:
         """Handle selecting folder as working directory."""
@@ -552,11 +552,11 @@ class ProjectCallbackHandler(BaseCallbackHandler):
 
         # Validate path
         if not self.file_browser_service.is_within_root(path):
-            await callback.answer("❌ Доступ запрещен")
+            await callback.answer("❌ Access denied")
             return
 
         if not os.path.isdir(path):
-            await callback.answer("❌ Папка не найдена")
+            await callback.answer("❌ Folder not found")
             return
 
         try:
@@ -584,24 +584,24 @@ class ProjectCallbackHandler(BaseCallbackHandler):
 
             # Update message with confirmation
             await callback.message.edit_text(
-                f"✅ <b>Рабочая директория установлена</b>\n\n"
-                f"<b>Путь:</b> <code>{html.escape(path)}</code>\n"
-                f"<b>Проект:</b> {html.escape(project_name)}\n\n"
-                f"Теперь все команды Claude будут выполняться здесь.\n"
-                f"Отправьте сообщение, чтобы начать работу.",
+                f"✅ <b>Working directory set</b>\n\n"
+                f"<b>Path:</b> <code>{html.escape(path)}</code>\n"
+                f"<b>Project:</b> {html.escape(project_name)}\n\n"
+                f"Now all the teams Claude will be executed here.\n"
+                f"Send a message to get started.",
                 parse_mode=ParseMode.HTML
             )
             await callback.answer(f"✅ {project_name}")
 
         except Exception as e:
             logger.error(f"Error selecting folder {path}: {e}")
-            await callback.answer(f"❌ Ошибка: {e}")
+            await callback.answer(f"❌ Error: {e}")
 
     async def handle_cd_close(self, callback: CallbackQuery) -> None:
         """Handle closing the file browser."""
         try:
             await callback.message.delete()
-            await callback.answer("Закрыто")
+            await callback.answer("Closed")
         except Exception as e:
             logger.error(f"Error closing file browser: {e}")
-            await callback.answer("Закрыто")
+            await callback.answer("Closed")

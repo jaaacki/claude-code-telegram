@@ -1,14 +1,14 @@
 """
-Docker Logs API - простой HTTP сервер для чтения логов контейнеров.
+Docker Logs API - simple HTTP server for reading container logs.
 
-Доступен всем контейнерам на сервере по адресу:
+Available to all containers on the server at:
   http://host.docker.internal:9999
 
-Примеры:
-  GET /containers              - список контейнеров
-  GET /logs/container_name     - логи контейнера
-  GET /logs/container_name?tail=100  - последние 100 строк
-  GET /logs/container_name?since=1h  - логи за последний час
+Examples:
+  GET /containers              - list of containers
+  GET /logs/container_name     - container logs
+  GET /logs/container_name?tail=100  - latest 100 lines
+  GET /logs/container_name?since=1h  - logs for the last hour
 """
 
 import asyncio
@@ -17,12 +17,12 @@ from aiohttp import web
 import docker
 from docker.errors import NotFound, APIError
 
-# Инициализация Docker клиента
+# Initialization Docker client
 client = docker.from_env()
 
 
 async def list_containers(request):
-    """Список всех контейнеров."""
+    """List of all containers."""
     try:
         containers = client.containers.list(all=True)
         result = []
@@ -39,12 +39,12 @@ async def list_containers(request):
 
 
 async def get_logs(request):
-    """Получить логи контейнера."""
+    """Get container logs."""
     container_name = request.match_info.get("name")
 
-    # Параметры
-    tail = request.query.get("tail", "500")  # По умолчанию 500 строк
-    since = request.query.get("since")  # Например: 1h, 30m, 2d
+    # Options
+    tail = request.query.get("tail", "500")  # Default 500 lines
+    since = request.query.get("since")  # For example: 1h, 30m, 2d
     follow = request.query.get("follow", "false").lower() == "true"
 
     try:
@@ -57,7 +57,7 @@ async def get_logs(request):
     except Exception as e:
         return web.json_response({"error": str(e)}, status=500)
 
-    # Парсим since (1h -> 3600, 30m -> 1800, etc.)
+    # Parsim since (1h -> 3600, 30m -> 1800, etc.)
     since_seconds = None
     if since:
         match = re.match(r"(\d+)([smhd])", since)
@@ -67,7 +67,7 @@ async def get_logs(request):
             since_seconds = value * multipliers.get(unit, 1)
 
     try:
-        # Получаем логи
+        # We receive logs
         logs_kwargs = {
             "stdout": True,
             "stderr": True,
@@ -82,7 +82,7 @@ async def get_logs(request):
             logs_kwargs["since"] = int(time.time() - since_seconds)
 
         if follow:
-            # Streaming режим
+            # Streaming mode
             response = web.StreamResponse(
                 status=200,
                 reason="OK",
@@ -100,7 +100,7 @@ async def get_logs(request):
             await response.write_eof()
             return response
         else:
-            # Обычный режим
+            # Normal mode
             logs = container.logs(**logs_kwargs)
             return web.Response(
                 text=logs.decode("utf-8", errors="replace"),
@@ -117,23 +117,23 @@ async def health(request):
 
 
 async def index(request):
-    """Документация API."""
+    """Documentation API."""
     docs = """
 Docker Logs API
 ===============
 
 Endpoints:
-  GET /                        - эта документация
+  GET /                        - this documentation
   GET /health                  - health check
-  GET /containers              - список контейнеров
-  GET /logs/{name}             - логи контейнера
+  GET /containers              - list of containers
+  GET /logs/{name}             - container logs
 
-Query параметры для /logs/{name}:
-  tail=100                     - количество строк (по умолчанию 500, "all" для всех)
-  since=1h                     - логи за период (1h, 30m, 2d, 60s)
-  follow=true                  - streaming режим (как docker logs -f)
+Query parameters for /logs/{name}:
+  tail=100                     - number of lines (default 500, "all" for everyone)
+  since=1h                     - logs for the period (1h, 30m, 2d, 60s)
+  follow=true                  - streaming mode (as docker logs -f)
 
-Примеры:
+Examples:
   curl http://host.docker.internal:9999/containers
   curl http://host.docker.internal:9999/logs/claude_agent
   curl http://host.docker.internal:9999/logs/claude_agent?tail=100

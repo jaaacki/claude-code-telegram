@@ -45,7 +45,7 @@ class BaseCallbackHandler:
         self,
         callback: CallbackQuery,
         expected_user_id: int,
-        error_message: str = "Это не ваше сообщение"
+        error_message: str = "This is not your message"
     ) -> bool:
         """
         Validate that callback is from the expected user.

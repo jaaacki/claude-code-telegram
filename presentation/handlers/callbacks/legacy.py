@@ -96,7 +96,7 @@ class CallbackHandlers:
         """Handle command approval callback"""
         command_id = CallbackData.get_command_id(callback.data)
         if not command_id:
-            await callback.answer("❌ Неверная команда")
+            await callback.answer("❌ Invalid command")
             return
 
         try:
@@ -140,7 +140,7 @@ class CallbackHandlers:
 
         except Exception as e:
             logger.error(f"Error executing command: {e}")
-            await callback.message.edit_text(f"❌ Ошибка: {str(e)}", parse_mode=None)
+            await callback.message.edit_text(f"❌ Error: {str(e)}", parse_mode=None)
 
         await callback.answer()
 
@@ -148,15 +148,15 @@ class CallbackHandlers:
         """Handle command cancellation callback"""
         command_id = CallbackData.get_command_id(callback.data)
         if not command_id:
-            await callback.answer("❌ Неверная команда")
+            await callback.answer("❌ Invalid command")
             return
 
         try:
-            await self.bot_service.reject_command(command_id, "Отменено пользователем")
+            await self.bot_service.reject_command(command_id, "Canceled by user")
             await callback.message.edit_text("❌ Command cancelled")
         except Exception as e:
             logger.error(f"Error cancelling command: {e}")
-            await callback.message.edit_text(f"❌ Ошибка: {str(e)}")
+            await callback.message.edit_text(f"❌ Error: {str(e)}")
 
         await callback.answer()
 
@@ -207,9 +207,9 @@ class CallbackHandlers:
             commands = await self.bot_service.command_repository.find_by_user(user_id, limit=10)
 
             if not commands:
-                text = "📝 <b>История команд</b>\n\nКоманд пока нет."
+                text = "📝 <b>Team history</b>\n\nNo teams yet."
             else:
-                lines = ["📝 <b>История команд:</b>\n"]
+                lines = ["📝 <b>Team history:</b>\n"]
                 for cmd in commands[:10]:
                     status_emoji = "✅" if cmd.status.value == "completed" else "⏳"
                     cmd_preview = cmd.command[:30] + "..." if len(cmd.command) > 30 else cmd.command
@@ -221,7 +221,7 @@ class CallbackHandlers:
 
         except Exception as e:
             logger.error(f"Error getting command history: {e}")
-            await callback.answer(f"❌ Ошибка: {e}")
+            await callback.answer(f"❌ Error: {e}")
 
         await callback.answer()
 

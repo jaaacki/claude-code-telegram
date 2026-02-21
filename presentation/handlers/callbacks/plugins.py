@@ -22,19 +22,19 @@ class PluginCallbackHandler(BaseCallbackHandler):
         from presentation.keyboards.keyboards import Keyboards
 
         if not self.sdk_service:
-            await callback.answer("⚠️ SDK не доступен")
+            await callback.answer("⚠️ SDK not available")
             return
 
         plugins = self.sdk_service.get_enabled_plugins_info()
 
         if not plugins:
             text = (
-                "🔌 <b>Плагины Claude Code</b>\n\n"
-                "Нет активных плагинов.\n\n"
-                "Нажмите 🛒 <b>Магазин</b> чтобы добавить плагины."
+                "🔌 <b>Plugins Claude Code</b>\n\n"
+                "No active plugins.\n\n"
+                "Click 🛒 <b>Shop</b> to add plugins."
             )
         else:
-            text = "🔌 <b>Плагины Claude Code</b>\n\n"
+            text = "🔌 <b>Plugins Claude Code</b>\n\n"
             for p in plugins:
                 name = p.get("name", "unknown")
                 desc = p.get("description", "")
@@ -47,7 +47,7 @@ class PluginCallbackHandler(BaseCallbackHandler):
                 if desc:
                     text += f"   <i>{desc}</i>\n"
 
-            text += f"\n<i>Всего: {len(plugins)} плагинов</i>"
+            text += f"\n<i>Total: {len(plugins)} plugins</i>"
 
         await callback.message.edit_text(
             text,
@@ -58,7 +58,7 @@ class PluginCallbackHandler(BaseCallbackHandler):
 
     async def handle_plugin_refresh(self, callback: CallbackQuery) -> None:
         """Refresh plugins list"""
-        await callback.answer("🔄 Обновлено")
+        await callback.answer("🔄 Updated")
         await self.handle_plugin_list(callback)
 
     async def handle_plugin_marketplace(self, callback: CallbackQuery) -> None:
@@ -66,22 +66,22 @@ class PluginCallbackHandler(BaseCallbackHandler):
         from presentation.keyboards.keyboards import Keyboards
 
         if not self.sdk_service:
-            await callback.answer("⚠️ SDK не доступен")
+            await callback.answer("⚠️ SDK not available")
             return
 
         # All available plugins from official marketplace
         marketplace_plugins = [
             {"name": "commit-commands", "desc": "Git workflow: commit, push, PR"},
-            {"name": "code-review", "desc": "Ревью кода и PR"},
-            {"name": "feature-dev", "desc": "Разработка фичи с архитектурой"},
-            {"name": "frontend-design", "desc": "Создание UI интерфейсов"},
-            {"name": "ralph-loop", "desc": "RAFL: итеративное решение задач"},
-            {"name": "security-guidance", "desc": "Проверка безопасности кода"},
-            {"name": "pr-review-toolkit", "desc": "Инструменты ревью PR"},
-            {"name": "claude-code-setup", "desc": "Настройка Claude Code"},
-            {"name": "hookify", "desc": "Управление хуками"},
-            {"name": "explanatory-output-style", "desc": "Объяснительный стиль вывода"},
-            {"name": "learning-output-style", "desc": "Обучающий стиль вывода"},
+            {"name": "code-review", "desc": "Code review and PR"},
+            {"name": "feature-dev", "desc": "Development of features with architecture"},
+            {"name": "frontend-design", "desc": "Creation UI interfaces"},
+            {"name": "ralph-loop", "desc": "RAFL: iterative problem solving"},
+            {"name": "security-guidance", "desc": "Code security check"},
+            {"name": "pr-review-toolkit", "desc": "Review tools PR"},
+            {"name": "claude-code-setup", "desc": "Settings Claude Code"},
+            {"name": "hookify", "desc": "Hook management"},
+            {"name": "explanatory-output-style", "desc": "Explanatory inference style"},
+            {"name": "learning-output-style", "desc": "Training output style"},
         ]
 
         # Get currently enabled plugins
@@ -89,11 +89,11 @@ class PluginCallbackHandler(BaseCallbackHandler):
         enabled_names = [p.get("name") for p in enabled]
 
         text = (
-            "🛒 <b>Магазин плагинов</b>\n\n"
-            "Выберите плагин для включения:\n"
-            "✅ - уже включен\n"
-            "➕ - нажмите чтобы включить\n\n"
-            "<i>Изменения вступят в силу после перезапуска бота</i>"
+            "🛒 <b>Plugin Store</b>\n\n"
+            "Select a plugin to enable:\n"
+            "✅ - already enabled\n"
+            "➕ - click to enable\n\n"
+            "<i>Changes will take effect after restarting the bot</i>"
         )
 
         await callback.message.edit_text(
@@ -110,18 +110,18 @@ text,
 
         # Plugin descriptions
         descriptions = {
-            "commit-commands": "Автоматизация Git workflow: создание коммитов, пуш, создание PR с правильным форматированием.",
-            "code-review": "Профессиональный ревью кода: находит баги, проблемы безопасности, предлагает улучшения.",
-            "feature-dev": "Пошаговая разработка фичи: анализ архитектуры, планирование, реализация.",
-            "frontend-design": "Создание красивых UI компонентов и страниц с современным дизайном.",
-            "ralph-loop": "RAFL (Reflect-Act-Fix-Loop): итеративное решение сложных задач с самопроверкой.",
-            "security-guidance": "Анализ безопасности кода: уязвимости, best practices, рекомендации.",
-            "pr-review-toolkit": "Инструменты для ревью Pull Request'ов на GitHub.",
-            "claude-code-setup": "Настройка и конфигурирование Claude Code.",
-            "hookify": "Создание и управление git хуками.",
+            "commit-commands": "Automation Git workflow: making commits, pushing, creating PR with correct formatting.",
+            "code-review": "Professional code review: finds bugs, security issues, suggests improvements.",
+            "feature-dev": "Step-by-step feature development: architecture analysis, planning, implementation.",
+            "frontend-design": "Creating beautiful UI components and pages with modern design.",
+            "ralph-loop": "RAFL (Reflect-Act-Fix-Loop): iterative solution of complex problems with self-testing.",
+            "security-guidance": "Code Security Analysis: vulnerabilities, best practices, recommendations.",
+            "pr-review-toolkit": "Review Tools Pull Request'ov on GitHub.",
+            "claude-code-setup": "Setup and configuration Claude Code.",
+            "hookify": "Creation and management git hooks.",
         }
 
-        desc = descriptions.get(plugin_name, "Официальный плагин Claude Code")
+        desc = descriptions.get(plugin_name, "Official plugin Claude Code")
 
         await callback.answer(f"ℹ️ {plugin_name}: {desc[:150]}", show_alert=True)
 
@@ -131,17 +131,17 @@ text,
         plugin_name = parts[2] if len(parts) > 2 else "unknown"
 
         if not self.sdk_service:
-            await callback.answer("⚠️ SDK не доступен")
+            await callback.answer("⚠️ SDK not available")
             return
 
         # Add plugin to enabled list
         if hasattr(self.sdk_service, 'add_plugin'):
             self.sdk_service.add_plugin(plugin_name)
-            await callback.answer(f"✅ Плагин {plugin_name} включен!")
+            await callback.answer(f"✅ Plugin {plugin_name} included!")
             await self.handle_plugin_marketplace(callback)
         else:
             await callback.answer(
-                f"ℹ️ Добавьте {plugin_name} в CLAUDE_PLUGINS и перезапустите бота",
+                f"ℹ️ Add {plugin_name} V CLAUDE_PLUGINS and restart the bot",
                 show_alert=True
             )
 
@@ -151,17 +151,17 @@ text,
         plugin_name = parts[2] if len(parts) > 2 else "unknown"
 
         if not self.sdk_service:
-            await callback.answer("⚠️ SDK не доступен")
+            await callback.answer("⚠️ SDK not available")
             return
 
         # Remove plugin from enabled list
         if hasattr(self.sdk_service, 'remove_plugin'):
             self.sdk_service.remove_plugin(plugin_name)
-            await callback.answer(f"❌ Плагин {plugin_name} отключен!")
+            await callback.answer(f"❌ Plugin {plugin_name} disabled!")
             await self.handle_plugin_list(callback)
         else:
             await callback.answer(
-                f"ℹ️ Удалите {plugin_name} из CLAUDE_PLUGINS и перезапустите бота",
+                f"ℹ️ Remove {plugin_name} from CLAUDE_PLUGINS and restart the bot",
                 show_alert=True
             )
 

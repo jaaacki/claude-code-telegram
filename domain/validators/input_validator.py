@@ -1,7 +1,7 @@
 """
-Input validation utilities для безопасности.
+Input validation utilities for safety.
 
-Предоставляет валидацию для всех пользовательских вводов.
+Provides validation for all user inputs.
 """
 
 import re
@@ -16,17 +16,17 @@ logger = logging.getLogger(__name__)
 # === Common Validators ===
 
 class ValidatedCommand(BaseModel):
-    """Валидированная команда от пользователя"""
+    """Validated command from user"""
     command: str = Field(..., min_length=1, max_length=1000)
 
     @validator('command')
     def validate_command(cls, v):
-        """Валидация команды на опасные символы"""
-        # Длина
+        """Command validation for dangerous characters"""
+        # Length
         if len(v) > 1000:
             raise ValueError('Command too long (max 1000 characters)')
 
-        # Опасные символы (basic check)
+        # Dangerous symbols (basic check)
         dangerous_patterns = ['&&', '||', ';', '`', '$(', '<(', '>', '|']
         for pattern in dangerous_patterns:
             if pattern in v:
@@ -44,13 +44,13 @@ class ValidatedCommand(BaseModel):
 
 
 class ValidatedPath(BaseModel):
-    """Валидированный путь"""
+    """Validated path"""
     path: str = Field(..., min_length=1, max_length=500)
 
     @validator('path')
     def validate_path(cls, v):
-        """Валидация пути"""
-        # Длина
+        """Path Validation"""
+        # Length
         if len(v) > 500:
             raise ValueError('Path too long (max 500 characters)')
 
@@ -62,9 +62,9 @@ class ValidatedPath(BaseModel):
         if '\x00' in v:
             raise ValueError('Null bytes detected')
 
-        # Проверка на валидные символы
+        # Checking for valid characters
         # Windows:不允许 <>:"|?*
-        # Unix: только null и /
+        # Unix: only null And /
         invalid_windows = ['<', '>', ':', '"', '|', '?', '*']
         if any(char in v for char in invalid_windows):
             raise ValueError(f'Invalid character in path (Windows forbidden)')
@@ -73,32 +73,32 @@ class ValidatedPath(BaseModel):
 
 
 class ValidatedProxyUrl(BaseModel):
-    """Валидированный proxy URL"""
+    """Validated proxy URL"""
     url: str = Field(..., min_length=1, max_length=200)
 
     @validator('url')
     def validate_proxy_url(cls, v):
-        """Валидация proxy URL"""
+        """Validation proxy URL"""
         from urllib.parse import urlparse
 
         try:
             result = urlparse(v)
 
-            # Scheme проверка
+            # Scheme examination
             if result.scheme not in ['http', 'https', 'socks5', 'socks5h']:
                 raise ValueError(
                     "Invalid proxy scheme. Must be http, https, socks5, or socks5h"
                 )
 
-            # Hostname проверка
+            # Hostname examination
             if not result.hostname:
                 raise ValueError("Missing hostname in proxy URL")
 
-            # Port проверка (если указан)
+            # Port check (if specified)
             if result.port is not None and not (1 <= result.port <= 65535):
                 raise ValueError(f"Invalid port: {result.port}")
 
-            # Длина
+            # Length
             if len(v) > 200:
                 raise ValueError('Proxy URL too long (max 200 characters)')
 
@@ -109,17 +109,17 @@ class ValidatedProxyUrl(BaseModel):
 
 
 class ValidatedProjectName(BaseModel):
-    """Валидированное название проекта"""
+    """Validated project name"""
     name: str = Field(..., min_length=1, max_length=100)
 
     @validator('name')
     def validate_project_name(cls, v):
-        """Валидация названия проекта"""
-        # Длина
+        """Project name validation"""
+        # Length
         if len(v) > 100:
             raise ValueError('Project name too long (max 100 characters)')
 
-        # Опасные символы
+        # Dangerous symbols
         if any(char in v for char in ['/', '\\', ':', '*', '?', '"', '<', '>', '|']):
             raise ValueError('Invalid character in project name')
 
@@ -135,30 +135,30 @@ class ValidatedProjectName(BaseModel):
 
 
 class ValidatedGitHubUrl(BaseModel):
-    """Валидированный GitHub URL"""
+    """Validated GitHub URL"""
     url: str = Field(..., min_length=1, max_length=200)
 
     @validator('url')
     def validate_github_url(cls, v):
-        """Валидация GitHub URL"""
+        """Validation GitHub URL"""
         from urllib.parse import urlparse
 
         try:
             result = urlparse(v)
 
-            # Scheme проверка
+            # Scheme examination
             if result.scheme not in ['http', 'https']:
                 raise ValueError("Invalid URL scheme. Must be http or https")
 
-            # Domain проверка
+            # Domain examination
             if 'github.com' not in result.netloc.lower():
                 raise ValueError("URL must be from github.com")
 
-            # Path проверка
+            # Path examination
             if not result.path or result.path == '/':
                 raise ValueError("Invalid GitHub repository path")
 
-            # Длина
+            # Length
             if len(v) > 200:
                 raise ValueError('GitHub URL too long (max 200 characters)')
 
@@ -169,13 +169,13 @@ class ValidatedGitHubUrl(BaseModel):
 
 
 class ValidatedText(BaseModel):
-    """Валидированный текст (общий случай)"""
+    """Validated text (general case)"""
     text: str = Field(..., min_length=1, max_length=5000)
 
     @validator('text')
     def validate_text(cls, v):
-        """Базовая валидация текста"""
-        # Длина
+        """Basic text validation"""
+        # Length
         if len(v) > 5000:
             raise ValueError('Text too long (max 5000 characters)')
 
@@ -183,7 +183,7 @@ class ValidatedText(BaseModel):
         if '\x00' in v:
             raise ValueError('Null bytes detected')
 
-        # Control characters (кроме newline, tab, carriage return)
+        # Control characters (except newline, tab, carriage return)
         control_chars = set(range(0, 32)) - {9, 10, 13}  # \t, \n, \r
         if any(ord(c) in control_chars for c in v):
             raise ValueError('Control characters detected')
@@ -192,17 +192,17 @@ class ValidatedText(BaseModel):
 
 
 class ValidatedApiKey(BaseModel):
-    """Валидированный API key"""
+    """Validated API key"""
     key: str = Field(..., min_length=1, max_length=200)
 
     @validator('key')
     def validate_api_key(cls, v):
-        """Валидация API key"""
-        # Длина
+        """Validation API key"""
+        # Length
         if len(v) > 200:
             raise ValueError('API key too long (max 200 characters)')
 
-        # Проверка на whitespace
+        # Check for whitespace
         if any(c.isspace() for c in v):
             raise ValueError('API key cannot contain whitespace')
 
@@ -217,11 +217,11 @@ class ValidatedApiKey(BaseModel):
 
 def validate_user_input(input_type: str, value: str) -> tuple[bool, str, any]:
     """
-    Валидация пользовательского ввода.
+    User input validation.
 
     Args:
-        input_type: Тип ввода (command, path, proxy_url, project_name, github_url, text, api_key)
-        value: Значение для валидации
+        input_type: Input type (command, path, proxy_url, project_name, github_url, text, api_key)
+        value: Validation value
 
     Returns:
         (success, error_message, validated_value)
@@ -259,11 +259,11 @@ def validate_user_input(input_type: str, value: str) -> tuple[bool, str, any]:
 
 async def validate_and_sanitize(user_input: str, input_type: str = 'text') -> tuple[bool, str, str]:
     """
-    Валидация и санитизация пользовательского ввода.
+    Validation and sanitization of user input.
 
     Args:
-        user_input: Пользовательский ввод
-        input_type: Тип ввода
+        user_input: User input
+        input_type: Input type
 
     Returns:
         (success, error_message, sanitized_value)

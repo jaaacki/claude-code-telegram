@@ -30,7 +30,7 @@ class ClaudeCallbackHandler(BaseCallbackHandler):
         """Validate user and return user_id if valid."""
         user_id = await self._get_user_id_from_callback(callback)
         if user_id != callback.from_user.id:
-            await callback.answer("❌ Это действие не для вас")
+            await callback.answer("❌ This action is not for you")
             return None
         return user_id
 
@@ -61,11 +61,11 @@ class ClaudeCallbackHandler(BaseCallbackHandler):
             if hasattr(self.message_handlers, 'handle_permission_response'):
                 await self.message_handlers.handle_permission_response(user_id, True)
 
-            await callback.answer("✅ Одобрено")
+            await callback.answer("✅ Approved")
 
         except Exception as e:
             logger.error(f"Error handling claude approve: {e}")
-            await callback.answer(f"❌ Ошибка: {e}")
+            await callback.answer(f"❌ Error: {e}")
 
     async def handle_claude_reject(self, callback: CallbackQuery) -> None:
         """Handle Claude Code permission rejection"""
@@ -86,11 +86,11 @@ class ClaudeCallbackHandler(BaseCallbackHandler):
             if hasattr(self.message_handlers, 'handle_permission_response'):
                 await self.message_handlers.handle_permission_response(user_id, False)
 
-            await callback.answer("❌ Отклонено")
+            await callback.answer("❌ Rejected")
 
         except Exception as e:
             logger.error(f"Error handling claude reject: {e}")
-            await callback.answer(f"❌ Ошибка: {e}")
+            await callback.answer(f"❌ Error: {e}")
 
     async def handle_claude_clarify(self, callback: CallbackQuery) -> None:
         """Handle Claude Code permission clarification request"""
@@ -101,7 +101,7 @@ class ClaudeCallbackHandler(BaseCallbackHandler):
         try:
             hitl = self.message_handlers._hitl if hasattr(self.message_handlers, '_hitl') else None
             if not hitl:
-                await callback.answer("❌ HITL manager недоступен")
+                await callback.answer("❌ HITL manager unavailable")
                 return
 
             hitl.set_expecting_clarification(user_id, True)
@@ -109,15 +109,15 @@ class ClaudeCallbackHandler(BaseCallbackHandler):
 
             original_text = callback.message.text or ""
             await callback.message.edit_text(
-                original_text + "\n\n💬 Введите уточнение:",
+                original_text + "\n\n💬 Enter specification:",
                 parse_mode=None
             )
 
-            await callback.answer("✏️ Введите текст уточнения")
+            await callback.answer("✏️ Enter clarification text")
 
         except Exception as e:
             logger.error(f"Error handling claude clarify: {e}")
-            await callback.answer(f"❌ Ошибка: {e}")
+            await callback.answer(f"❌ Error: {e}")
 
     # ============== Question Callbacks ==============
 
@@ -128,7 +128,7 @@ class ClaudeCallbackHandler(BaseCallbackHandler):
         option_index = int(data.get("option_index", 0))
 
         if user_id != callback.from_user.id:
-            await callback.answer("❌ Это действие не для вас")
+            await callback.answer("❌ This action is not for you")
             return
 
         try:
@@ -138,7 +138,7 @@ class ClaudeCallbackHandler(BaseCallbackHandler):
 
             original_text = callback.message.text or ""
             await callback.message.edit_text(
-                original_text + f"\n\n📝 Ответ: {answer}",
+                original_text + f"\n\n📝 Answer: {answer}",
                 parse_mode=None
             )
 
@@ -150,11 +150,11 @@ class ClaudeCallbackHandler(BaseCallbackHandler):
             if hasattr(self.message_handlers, 'handle_question_response'):
                 await self.message_handlers.handle_question_response(user_id, answer)
 
-            await callback.answer(f"Ответ: {answer[:20]}...")
+            await callback.answer(f"Answer: {answer[:20]}...")
 
         except Exception as e:
             logger.error(f"Error handling claude answer: {e}")
-            await callback.answer(f"❌ Ошибка: {e}")
+            await callback.answer(f"❌ Error: {e}")
 
     async def handle_claude_other(self, callback: CallbackQuery) -> None:
         """Handle Claude Code question - user wants to type custom answer"""
@@ -172,11 +172,11 @@ class ClaudeCallbackHandler(BaseCallbackHandler):
             if hasattr(self.message_handlers, 'set_expecting_answer'):
                 self.message_handlers.set_expecting_answer(user_id, True)
 
-            await callback.answer("Введите ответ в чат")
+            await callback.answer("Enter your answer in the chat")
 
         except Exception as e:
             logger.error(f"Error handling claude other: {e}")
-            await callback.answer(f"❌ Ошибка: {e}")
+            await callback.answer(f"❌ Error: {e}")
 
     # ============== Task Control Callbacks ==============
 
@@ -198,14 +198,14 @@ class ClaudeCallbackHandler(BaseCallbackHandler):
                 logger.info(f"Proxy cancel_task for user {user_id}: {cancelled}")
 
             if cancelled:
-                await callback.message.edit_text("🛑 Задача отменена", parse_mode=None)
-                await callback.answer("Задача отменена")
+                await callback.message.edit_text("🛑 Task canceled", parse_mode=None)
+                await callback.answer("Task canceled")
             else:
-                await callback.answer("Нет активной задачи для отмены")
+                await callback.answer("No active task to cancel")
 
         except Exception as e:
             logger.error(f"Error cancelling task: {e}")
-            await callback.answer(f"❌ Ошибка: {e}")
+            await callback.answer(f"❌ Error: {e}")
 
     async def handle_claude_continue(self, callback: CallbackQuery) -> None:
         """Handle continue Claude Code session"""
@@ -214,23 +214,23 @@ class ClaudeCallbackHandler(BaseCallbackHandler):
         session_id = data.get("session_id")
 
         if user_id != callback.from_user.id:
-            await callback.answer("❌ Это действие не для вас")
+            await callback.answer("❌ This action is not for you")
             return
 
         try:
             await callback.message.edit_text(
-                "▶️ Продолжение сессии...\n\nОтправьте следующее сообщение для продолжения.",
+                "▶️ Continue the session...\n\nSend the following message to continue.",
                 parse_mode=None
             )
 
             if hasattr(self.message_handlers, 'set_continue_session'):
                 self.message_handlers.set_continue_session(user_id, session_id)
 
-            await callback.answer("Отправьте следующее сообщение")
+            await callback.answer("Send the following message")
 
         except Exception as e:
             logger.error(f"Error continuing session: {e}")
-            await callback.answer(f"❌ Ошибка: {e}")
+            await callback.answer(f"❌ Error: {e}")
 
     # ============== Plan Approval Callbacks (ExitPlanMode) ==============
 
@@ -244,83 +244,83 @@ class ClaudeCallbackHandler(BaseCallbackHandler):
         user_id = self._get_plan_user_id(callback)
 
         if user_id != callback.from_user.id:
-            await callback.answer("❌ Это действие не для вас")
+            await callback.answer("❌ This action is not for you")
             return
 
         try:
             original_text = callback.message.text or ""
             text = await self._truncate_and_append(
                 original_text,
-                "\n\n✅ **План одобрен** — начинаю выполнение!"
+                "\n\n✅ **Plan approved** — I start execution!"
             )
             await callback.message.edit_text(text, parse_mode=None)
 
             if hasattr(self.message_handlers, 'handle_plan_response'):
                 await self.message_handlers.handle_plan_response(user_id, "approve")
 
-            await callback.answer("✅ План одобрен!")
+            await callback.answer("✅ Plan approved!")
 
         except Exception as e:
             logger.error(f"Error handling plan approve: {e}")
-            await callback.answer(f"❌ Ошибка: {e}")
+            await callback.answer(f"❌ Error: {e}")
 
     async def handle_plan_reject(self, callback: CallbackQuery) -> None:
         """Handle plan rejection - user rejects the plan"""
         user_id = self._get_plan_user_id(callback)
 
         if user_id != callback.from_user.id:
-            await callback.answer("❌ Это действие не для вас")
+            await callback.answer("❌ This action is not for you")
             return
 
         try:
             original_text = callback.message.text or ""
-            text = await self._truncate_and_append(original_text, "\n\n❌ **План отклонён**")
+            text = await self._truncate_and_append(original_text, "\n\n❌ **Plan rejected**")
             await callback.message.edit_text(text, parse_mode=None)
 
             if hasattr(self.message_handlers, 'handle_plan_response'):
                 await self.message_handlers.handle_plan_response(user_id, "reject")
 
-            await callback.answer("❌ План отклонён")
+            await callback.answer("❌ Plan rejected")
 
         except Exception as e:
             logger.error(f"Error handling plan reject: {e}")
-            await callback.answer(f"❌ Ошибка: {e}")
+            await callback.answer(f"❌ Error: {e}")
 
     async def handle_plan_clarify(self, callback: CallbackQuery) -> None:
         """Handle plan clarification - user wants to provide feedback"""
         user_id = self._get_plan_user_id(callback)
 
         if user_id != callback.from_user.id:
-            await callback.answer("❌ Это действие не для вас")
+            await callback.answer("❌ This action is not for you")
             return
 
         try:
             original_text = callback.message.text or ""
             text = await self._truncate_and_append(
                 original_text,
-                "\n\n✏️ **Уточнение плана**\n\nВведите ваши комментарии в чат:"
+                "\n\n✏️ **Clarification of the plan**\n\nEnter your comments into the chat:"
             )
             await callback.message.edit_text(text, parse_mode=None)
 
             if hasattr(self.message_handlers, 'set_expecting_plan_clarification'):
                 self.message_handlers.set_expecting_plan_clarification(user_id, True)
 
-            await callback.answer("Введите уточнения в чат")
+            await callback.answer("Enter clarifications into the chat")
 
         except Exception as e:
             logger.error(f"Error handling plan clarify: {e}")
-            await callback.answer(f"❌ Ошибка: {e}")
+            await callback.answer(f"❌ Error: {e}")
 
     async def handle_plan_cancel(self, callback: CallbackQuery) -> None:
         """Handle plan cancellation - user wants to cancel the entire task"""
         user_id = self._get_plan_user_id(callback)
 
         if user_id != callback.from_user.id:
-            await callback.answer("❌ Это действие не для вас")
+            await callback.answer("❌ This action is not for you")
             return
 
         try:
-            await callback.message.edit_text("🛑 **Задача отменена**", parse_mode=None)
+            await callback.message.edit_text("🛑 **Task canceled**", parse_mode=None)
 
             cancelled = False
             if self.sdk_service:
@@ -332,8 +332,8 @@ class ClaudeCallbackHandler(BaseCallbackHandler):
             if hasattr(self.message_handlers, 'handle_plan_response'):
                 await self.message_handlers.handle_plan_response(user_id, "cancel")
 
-            await callback.answer("🛑 Задача отменена")
+            await callback.answer("🛑 Task canceled")
 
         except Exception as e:
             logger.error(f"Error handling plan cancel: {e}")
-            await callback.answer(f"❌ Ошибка: {e}")
+            await callback.answer(f"❌ Error: {e}")

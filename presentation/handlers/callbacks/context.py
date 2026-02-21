@@ -24,7 +24,7 @@ class ContextCallbackHandler(BaseCallbackHandler):
         user_id = callback.from_user.id
 
         if not self.project_service or not self.context_service:
-            await callback.answer("⚠️ Сервисы недоступны")
+            await callback.answer("⚠️ Services are unavailable")
             return None, None, None, None
 
         from domain.value_objects.user_id import UserId
@@ -32,7 +32,7 @@ class ContextCallbackHandler(BaseCallbackHandler):
 
         project = await self.project_service.get_current(uid)
         if not project:
-            await callback.answer("❌ Нет активного проекта")
+            await callback.answer("❌ No active project")
             return None, None, None, None
 
         current_ctx = await self.context_service.get_current(project.id)
@@ -47,17 +47,17 @@ class ContextCallbackHandler(BaseCallbackHandler):
             if not project:
                 return
 
-            ctx_name = current_ctx.name if current_ctx else "не выбран"
+            ctx_name = current_ctx.name if current_ctx else "not selected"
             msg_count = current_ctx.message_count if current_ctx else 0
             has_session = current_ctx.has_session if current_ctx else False
 
-            session_status = "📜 Есть сессия" if has_session else "✨ Чистый"
+            session_status = "📜 There is a session" if has_session else "✨ Clean"
             text = (
-                f"💬 Управление контекстами\n\n"
-                f"📂 Проект: {project.name}\n"
-                f"💬 Контекст: {ctx_name}\n"
-                f"📝 Сообщений: {msg_count}\n"
-                f"📌 Статус: {session_status}"
+                f"💬 Managing Contexts\n\n"
+                f"📂 Project: {project.name}\n"
+                f"💬 Context: {ctx_name}\n"
+                f"📝 Messages: {msg_count}\n"
+                f"📌 Status: {session_status}"
             )
 
             keyboard = Keyboards.context_menu(
@@ -69,7 +69,7 @@ class ContextCallbackHandler(BaseCallbackHandler):
 
         except Exception as e:
             logger.error(f"Error showing context menu: {e}")
-            await callback.answer(f"❌ Ошибка: {e}")
+            await callback.answer(f"❌ Error: {e}")
 
     # ============== Context List ==============
 
@@ -84,12 +84,12 @@ class ContextCallbackHandler(BaseCallbackHandler):
             current_id = current_ctx.id if current_ctx else None
 
             if contexts:
-                text = f"💬 Контексты проекта {project.name}\n\nВыберите контекст:"
+                text = f"💬 Project contexts {project.name}\n\nSelect context:"
                 keyboard = Keyboards.context_list(contexts, current_id)
             else:
                 # Create default context if none exist
                 context = await ctx_service.create_new(project.id, uid, "main", set_as_current=True)
-                text = f"✨ Создан контекст: {context.name}"
+                text = f"✨ Context created: {context.name}"
                 keyboard = Keyboards.context_menu(
                     context.name, project.name, 0,
                     show_back=True, back_to="menu:context"
@@ -100,7 +100,7 @@ class ContextCallbackHandler(BaseCallbackHandler):
 
         except Exception as e:
             logger.error(f"Error listing contexts: {e}")
-            await callback.answer(f"❌ Ошибка: {e}")
+            await callback.answer(f"❌ Error: {e}")
 
     # ============== Context Switch ==============
 
@@ -116,26 +116,26 @@ class ContextCallbackHandler(BaseCallbackHandler):
             context = await ctx_service.switch_context(project.id, context_id)
 
             if context:
-                session_status = "📜 Есть сессия" if context.has_session else "✨ Чистый"
+                session_status = "📜 There is a session" if context.has_session else "✨ Clean"
                 text = (
-                    f"💬 Переключено на контекст:\n\n"
+                    f"💬 Switched to context:\n\n"
                     f"📝 {context.name}\n"
-                    f"📊 Сообщений: {context.message_count}\n"
-                    f"📂 Проект: {project.name}\n"
-                    f"📌 Статус: {session_status}"
+                    f"📊 Messages: {context.message_count}\n"
+                    f"📂 Project: {project.name}\n"
+                    f"📌 Status: {session_status}"
                 )
                 keyboard = Keyboards.context_menu(
                     context.name, project.name, context.message_count,
                     show_back=True, back_to="menu:context"
                 )
                 await callback.message.edit_text(text, parse_mode=None, reply_markup=keyboard)
-                await callback.answer(f"Контекст: {context.name}")
+                await callback.answer(f"Context: {context.name}")
             else:
-                await callback.answer("❌ Контекст не найден")
+                await callback.answer("❌ Context not found")
 
         except Exception as e:
             logger.error(f"Error switching context: {e}")
-            await callback.answer(f"❌ Ошибка: {e}")
+            await callback.answer(f"❌ Error: {e}")
 
     # ============== Context Creation ==============
 
@@ -149,22 +149,22 @@ class ContextCallbackHandler(BaseCallbackHandler):
             context = await ctx_service.create_new(project.id, uid, set_as_current=True)
 
             text = (
-                f"✨ Новый контекст создан\n\n"
+                f"✨ New context created\n\n"
                 f"📝 {context.name}\n"
-                f"📂 Проект: {project.name}\n\n"
-                f"Чистый старт — без истории!\n"
-                f"Отправьте первое сообщение."
+                f"📂 Project: {project.name}\n\n"
+                f"Clean start — no history!\n"
+                f"Send your first message."
             )
             keyboard = Keyboards.context_menu(
                 context.name, project.name, 0,
                 show_back=True, back_to="menu:context"
             )
             await callback.message.edit_text(text, parse_mode=None, reply_markup=keyboard)
-            await callback.answer(f"Создан {context.name}")
+            await callback.answer(f"Created {context.name}")
 
         except Exception as e:
             logger.error(f"Error creating context: {e}")
-            await callback.answer(f"❌ Ошибка: {e}")
+            await callback.answer(f"❌ Error: {e}")
 
     # ============== Context Clearing ==============
 
@@ -176,14 +176,14 @@ class ContextCallbackHandler(BaseCallbackHandler):
                 return
 
             if not current_ctx:
-                await callback.answer("❌ Нет активного контекста")
+                await callback.answer("❌ No active context")
                 return
 
             text = (
-                f"🗑️ Очистить контекст?\n\n"
+                f"🗑️ Clear context?\n\n"
                 f"📝 {current_ctx.name}\n"
-                f"📊 Сообщений: {current_ctx.message_count}\n\n"
-                f"⚠️ Вся история будет удалена!"
+                f"📊 Messages: {current_ctx.message_count}\n\n"
+                f"⚠️ All history will be deleted!"
             )
             keyboard = Keyboards.context_clear_confirm()
             await callback.message.edit_text(text, parse_mode=None, reply_markup=keyboard)
@@ -191,7 +191,7 @@ class ContextCallbackHandler(BaseCallbackHandler):
 
         except Exception as e:
             logger.error(f"Error showing clear confirm: {e}")
-            await callback.answer(f"❌ Ошибка: {e}")
+            await callback.answer(f"❌ Error: {e}")
 
     async def handle_context_clear_confirm(self, callback: CallbackQuery) -> None:
         """Confirm and clear context - creates NEW context for fresh start."""
@@ -201,7 +201,7 @@ class ContextCallbackHandler(BaseCallbackHandler):
                 return
 
             if not current_ctx:
-                await callback.answer("❌ Нет активного контекста")
+                await callback.answer("❌ No active context")
                 return
 
             # 1. Create new context (auto-generated name, set as current)
@@ -218,21 +218,21 @@ class ContextCallbackHandler(BaseCallbackHandler):
                 self.message_handlers.clear_session_cache(user_id)
 
             text = (
-                f"✅ Новый контекст создан\n\n"
+                f"✅ New context created\n\n"
                 f"📝 {new_context.name}\n"
-                f"📂 Проект: {project.name}\n\n"
-                f"Начните новый диалог."
+                f"📂 Project: {project.name}\n\n"
+                f"Start a new conversation."
             )
             keyboard = Keyboards.context_menu(
                 new_context.name, project.name, 0,
                 show_back=True, back_to="menu:context"
             )
             await callback.message.edit_text(text, parse_mode=None, reply_markup=keyboard)
-            await callback.answer("Новый контекст создан")
+            await callback.answer("New context created")
 
         except Exception as e:
             logger.error(f"Error clearing context: {e}")
-            await callback.answer(f"❌ Ошибка: {e}")
+            await callback.answer(f"❌ Error: {e}")
 
     # ============== Navigation ==============
 

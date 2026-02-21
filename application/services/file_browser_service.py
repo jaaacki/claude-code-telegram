@@ -233,7 +233,7 @@ class FileBrowserService:
         lines.append(f"📂 <b>{html.escape(content.path)}</b>\n")
 
         if not content.entries:
-            lines.append("   <i>(пусто)</i>")
+            lines.append("   <i>(empty)</i>")
         else:
             # Build tree
             for i, entry in enumerate(content.entries):
@@ -254,11 +254,11 @@ class FileBrowserService:
                 lines.append(f"{branch}{emoji} {name}")
 
         # Footer with current path
-        lines.append(f"\n📍 <b>Путь:</b> <code>{html.escape(content.path)}</code>")
+        lines.append(f"\n📍 <b>Path:</b> <code>{html.escape(content.path)}</code>")
 
         # Show if truncated
         if len(content.entries) >= self.MAX_ENTRIES:
-            lines.append(f"<i>... и ещё файлы (показано {self.MAX_ENTRIES})</i>")
+            lines.append(f"<i>... and more files (shown {self.MAX_ENTRIES})</i>")
 
         return "\n".join(lines)
 

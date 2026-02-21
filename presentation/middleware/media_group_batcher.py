@@ -1,13 +1,13 @@
 """
 Media Group Batcher
 
-Собирает все сообщения из одной медиагруппы (альбома) перед обработкой.
+Collects all messages from one media group (album) before processing.
 
-Telegram отправляет каждый файл из альбома как отдельное сообщение,
-но все они имеют одинаковый media_group_id. Этот батчер:
-1. Собирает все сообщения с одинаковым media_group_id
-2. Ждёт короткий таймаут (0.5с) для получения всех файлов
-3. Вызывает callback со списком всех сообщений группы
+Telegram sends each file from the album as a separate message,
+but they all have the same media_group_id. This butcher:
+1. Collects all messages with the same media_group_id
+2. Waiting for a short timeout (0.5c) to get all files
+3. Calls callback with a list of all group messages
 """
 
 import asyncio
@@ -23,7 +23,7 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class PendingMediaGroup:
-    """Ожидающая медиагруппа"""
+    """Waiting media group"""
     media_group_id: str
     user_id: int
     messages: List[Message] = field(default_factory=list)
@@ -33,27 +33,27 @@ class PendingMediaGroup:
 
 class MediaGroupBatcher:
     """
-    Собирает сообщения из одной медиагруппы (альбома).
+    Collects messages from one media group (album).
 
-    Логика:
-    1. Первое сообщение с media_group_id запускает таймер
-    2. Все последующие сообщения с тем же media_group_id добавляются в группу
-    3. Когда таймер срабатывает - вызывается callback со всеми сообщениями
+    Logics:
+    1. First message from media_group_id starts the timer
+    2. All subsequent messages with the same media_group_id are added to the group
+    3. When the timer fires, it is called callback with all messages
 
-    Использование:
+    Usage:
         batcher = MediaGroupBatcher()
 
         async def process_album(messages: List[Message]):
-            # Обработать все файлы альбома
+            # Process all album files
             pass
 
-        # В handler:
+        # IN handler:
         if message.media_group_id:
             await batcher.add_message(message, process_album)
-            return  # Обработка произойдёт позже
+            return  # Processing will happen later
     """
 
-    BATCH_DELAY = 0.5  # секунды - время ожидания всех файлов альбома
+    BATCH_DELAY = 0.5  # seconds - waiting time for all album files
 
     def __init__(self, batch_delay: float = 0.5):
         self.batch_delay = batch_delay
@@ -61,7 +61,7 @@ class MediaGroupBatcher:
         self._lock = asyncio.Lock()
 
     def is_collecting(self, media_group_id: str) -> bool:
-        """Проверить, собирается ли группа"""
+        """Check if the group is meeting"""
         return media_group_id in self._groups
 
     async def add_message(
@@ -70,15 +70,15 @@ class MediaGroupBatcher:
         process_callback: Callable[[List[Message]], Awaitable[None]]
     ) -> bool:
         """
-        Добавить сообщение в медиагруппу.
+        Add a message to a media group.
 
         Args:
-            message: Сообщение с media_group_id
-            process_callback: Функция для обработки собранных сообщений
-                             Сигнатура: (messages: List[Message]) -> None
+            message: Message from media_group_id
+            process_callback: Function for processing collected messages
+                             Signature: (messages: List[Message]) -> None
 
         Returns:
-            True если сообщение добавлено в batch
+            True if the message is added to batch
         """
         media_group_id = message.media_group_id
         if not media_group_id:
@@ -88,7 +88,7 @@ class MediaGroupBatcher:
 
         async with self._lock:
             if media_group_id not in self._groups:
-                # Первое сообщение группы - создаём batch
+                # First message of the group - creating batch
                 self._groups[media_group_id] = PendingMediaGroup(
                     media_group_id=media_group_id,
                     user_id=user_id,
@@ -99,11 +99,11 @@ class MediaGroupBatcher:
                     f"first file: {self._get_file_info(message)}"
                 )
             else:
-                # Добавляем к существующей группе
+                # Add to an existing group
                 group = self._groups[media_group_id]
                 group.messages.append(message)
 
-                # Отменяем старый таймер
+                # Cancel the old timer
                 if group.timer_task and not group.timer_task.done():
                     group.timer_task.cancel()
                     try:
@@ -116,7 +116,7 @@ class MediaGroupBatcher:
                     f"added file #{len(group.messages)}: {self._get_file_info(message)}"
                 )
 
-            # Запускаем/перезапускаем таймер
+            # Let's launch/restart the timer
             group = self._groups[media_group_id]
             group.timer_task = asyncio.create_task(
                 self._process_after_delay(media_group_id, process_callback)
@@ -129,7 +129,7 @@ class MediaGroupBatcher:
         media_group_id: str,
         process_callback: Callable[[List[Message]], Awaitable[None]]
     ):
-        """Обработать группу после задержки"""
+        """Process group after delay"""
         try:
             await asyncio.sleep(self.batch_delay)
 
@@ -139,7 +139,7 @@ class MediaGroupBatcher:
             if not group or not group.messages:
                 return
 
-            # Сортируем по message_id для правильного порядка
+            # Sort by message_id for the correct order
             group.messages.sort(key=lambda m: m.message_id)
 
             logger.info(
@@ -147,20 +147,20 @@ class MediaGroupBatcher:
                 f"{len(group.messages)} files"
             )
 
-            # Вызываем callback
+            # Calling callback
             await process_callback(group.messages)
 
         except asyncio.CancelledError:
-            # Таймер отменён - новое сообщение пришло
+            # Timer canceled - new message arrived
             pass
         except Exception as e:
             logger.error(f"Error processing media group {media_group_id}: {e}", exc_info=True)
-            # Очищаем группу при ошибке
+            # Clearing a group in case of an error
             async with self._lock:
                 self._groups.pop(media_group_id, None)
 
     def _get_file_info(self, message: Message) -> str:
-        """Получить информацию о файле для логирования"""
+        """Get file information for logging"""
         if message.photo:
             photo = message.photo[-1]
             return f"photo ({photo.file_size or 0} bytes)"
@@ -172,7 +172,7 @@ class MediaGroupBatcher:
 
     async def cancel_group(self, media_group_id: str) -> List[Message]:
         """
-        Отменить группу и вернуть накопленные сообщения.
+        Cancel group and return accumulated messages.
         """
         async with self._lock:
             group = self._groups.pop(media_group_id, None)
@@ -185,22 +185,22 @@ class MediaGroupBatcher:
             return []
 
     def get_group_size(self, media_group_id: str) -> int:
-        """Получить текущий размер группы"""
+        """Get current group size"""
         group = self._groups.get(media_group_id)
         return len(group.messages) if group else 0
 
 
-# Глобальный экземпляр (создаётся в main.py или container)
+# Global instance (created in main.py or container)
 _media_group_batcher: Optional[MediaGroupBatcher] = None
 
 
 def get_media_group_batcher() -> Optional[MediaGroupBatcher]:
-    """Получить глобальный batcher"""
+    """Get Global batcher"""
     return _media_group_batcher
 
 
 def init_media_group_batcher(batch_delay: float = 0.5) -> MediaGroupBatcher:
-    """Инициализировать глобальный batcher"""
+    """Initialize global batcher"""
     global _media_group_batcher
     _media_group_batcher = MediaGroupBatcher(batch_delay=batch_delay)
     logger.info(f"MediaGroupBatcher initialized (delay={batch_delay}s)")

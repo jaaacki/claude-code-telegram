@@ -43,7 +43,7 @@ class CommandExecutionResult:
         """Get truncated output for display"""
         output = self.full_output
         if len(output) > max_length:
-            return output[:max_length] + "\n... (обрезано)"
+            return output[:max_length] + "\n... (cropped)"
         return output
 
 

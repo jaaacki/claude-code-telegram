@@ -6,14 +6,14 @@
   },
 
   "lang.select": "🌐 Select language:",
-  "lang.ru": "🇷🇺 Русский",
+  "lang.ru": "🇷🇺 Russian",
   "lang.en": "🇬🇧 English",
   "lang.zh": "🇨🇳 中文",
   "lang.changed": "✅ Language changed to English",
 
   "start.greeting": "👋 Hello, {name}!",
   "start.welcome": "Welcome to Claude Code Telegram Bot",
-  "start.select_language": "🌐 Select language / Выберите язык / 选择语言:",
+  "start.select_language": "🌐 Select language / Select language / 选择语言:",
   "start.status": "📊 Status:",
   "start.no_project": "📂 No active project",
   "start.project": "📂 Project: {name}",

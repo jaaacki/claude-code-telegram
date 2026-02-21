@@ -56,9 +56,8 @@ class AnthropicConfig:
     def from_env(cls) -> "AnthropicConfig":
         # Support both ANTHROPIC_API_KEY and ANTHROPIC_AUTH_TOKEN
         # For ZhipuAI, use ANTHROPIC_AUTH_TOKEN
-        api_key = os.getenv("ANTHROPIC_AUTH_TOKEN") or os.getenv("ANTHROPIC_API_KEY")
-        if not api_key:
-            raise ValueError("ANTHROPIC_AUTH_TOKEN or ANTHROPIC_API_KEY is required")
+        # For Claude Account OAuth, neither is required (uses ~/.config/claude/config.json)
+        api_key = os.getenv("ANTHROPIC_AUTH_TOKEN") or os.getenv("ANTHROPIC_API_KEY") or ""
 
         base_url = os.getenv("ANTHROPIC_BASE_URL")
         haiku_model = os.getenv("ANTHROPIC_DEFAULT_HAIKU_MODEL")

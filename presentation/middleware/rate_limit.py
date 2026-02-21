@@ -1,7 +1,7 @@
 """
-Rate Limiting Middleware для защиты от DoS атак.
+Rate Limiting Middleware to protect against DoS attacks.
 
-Предоставляет настраиваемый rate limiting для Telegram бота.
+Provides customizable rate limiting For Telegram bot.
 """
 
 import time
@@ -17,24 +17,24 @@ logger = logging.getLogger(__name__)
 
 class RateLimitMiddleware(BaseMiddleware):
     """
-    Middleware для rate limiting.
+    Middleware For rate limiting.
 
-    Ограничивает частоту сообщений от пользователей для защиты от DoS.
+    Limits the frequency of messages from users to protect against DoS.
 
     Usage:
-        # В main.py:
+        # IN main.py:
         from presentation.middleware.rate_limit import RateLimitMiddleware
 
-        # 2 сообщения в секунду (default)
+        # 2 messages per second (default)
         dp.message.middleware(RateLimitMiddleware(rate_limit=0.5))
 
-        # 10 сообщений в минуту
+        # 10 messages per minute
         dp.message.middleware(RateLimitMiddleware(rate_limit=6.0, per_user=True))
 
-        # Custom limits для разных пользователей
+        # Custom limits for different users
         dp.message.middleware(RateLimitMiddleware(
-            rate_limit=1.0,  # 1 сообщение в секунду
-            admin_ids=[123456789],  # Admins без ограничений
+            rate_limit=1.0,  # 1 message per second
+            admin_ids=[123456789],  # Admins no restrictions
         ))
     """
 
@@ -48,13 +48,13 @@ class RateLimitMiddleware(BaseMiddleware):
     ):
         """
         Args:
-            rate_limit: Минимальный интервал между сообщениями (в секундах)
-                       Меньше = быстрее (0.1 = 10 сообщений в секунду)
-                       Больше = медленнее (1.0 = 1 сообщение в секунду)
-            burst: Максимальное количество сообщений, которые можно отправить мгновенно
-            per_user: Применять ли rate limit для каждого пользователя отдельно
-            admin_ids: Список admin ID, которые exempt от rate limiting
-            whitelist_ids: Список ID пользователей, exempt от rate limiting
+            rate_limit: Minimum interval between messages (in seconds))
+                       Less = faster (0.1 = 10 messages per second)
+                       More = slower (1.0 = 1 message per second)
+            burst: Maximum number of messages that can be sent instantly
+            per_user: Should I use it? rate limit for each user separately
+            admin_ids: List admin ID, which exempt from rate limiting
+            whitelist_ids: List ID users, exempt from rate limiting
         """
         self.rate_limit = rate_limit
         self.burst = burst
@@ -220,10 +220,10 @@ class RateLimitMiddleware(BaseMiddleware):
 
 class SmartRateLimitMiddleware(RateLimitMiddleware):
     """
-    Умный rate limiting с адаптивными ограничениями.
+    Smart rate limiting with adaptive restrictions.
 
-    Автоматически увеличивает limit для активных пользователей
-    и уменьшает для спамеров.
+    Automatically increases limit for active users
+    and reduces for spammers.
     """
 
     def __init__(
@@ -237,12 +237,12 @@ class SmartRateLimitMiddleware(RateLimitMiddleware):
     ):
         """
         Args:
-            initial_rate_limit: Начальный rate limit
-            min_rate_limit: Минимальный rate limit (для спамеров)
-            max_rate_limit: Максимальный rate limit (для доверенных пользователей)
-            adjustment_factor: Коэффициент ajustment rate limit
-            spam_threshold: Порог для определения спамера
-            **kwargs: Передаются в RateLimitMiddleware
+            initial_rate_limit: Elementary rate limit
+            min_rate_limit: Minimum rate limit (for spammers)
+            max_rate_limit: Maximum rate limit (for trusted users)
+            adjustment_factor: Coefficient ajustment rate limit
+            spam_threshold: Threshold for identifying a spammer
+            **kwargs: Transmitted to RateLimitMiddleware
         """
         super().__init__(rate_limit=initial_rate_limit, **kwargs)
 

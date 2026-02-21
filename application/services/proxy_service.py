@@ -195,17 +195,17 @@ class ProxyService:
                     if response.status == 200:
                         data = await response.json()
                         origin_ip = data.get("origin", "unknown")
-                        return True, f"Подключение успешно! IP: {origin_ip}"
+                        return True, f"Connection successful! IP: {origin_ip}"
                     else:
-                        return False, f"Ошибка HTTP {response.status}"
+                        return False, f"Error HTTP {response.status}"
 
         except aiohttp.ClientProxyConnectionError as e:
-            return False, f"Ошибка подключения к прокси: {str(e)}"
+            return False, f"Error connecting to proxy: {str(e)}"
         except aiohttp.ClientError as e:
-            return False, f"Ошибка сети: {str(e)}"
+            return False, f"Network error: {str(e)}"
         except Exception as e:
             logger.error(f"Unexpected error testing proxy: {e}")
-            return False, f"Неожиданная ошибка: {str(e)}"
+            return False, f"Unexpected error: {str(e)}"
 
     def get_env_dict(self, proxy_config: Optional[ProxyConfig]) -> dict:
         """

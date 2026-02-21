@@ -44,9 +44,8 @@ class AIProviderConfig:
 
     def __post_init__(self):
         """Validate configuration after initialization"""
-        if not self.api_key:
-            raise ValueError("api_key is required")
-
+        # api_key can be empty for Claude Account OAuth mode
+        # (uses ~/.config/claude/config.json instead)
         if self.base_url:
             self._validate_url(self.base_url)
 

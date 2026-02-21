@@ -1,8 +1,8 @@
 """
 File Processor Service
 
-Обрабатывает загруженные файлы для добавления в контекст Claude.
-Поддерживает текстовые файлы, изображения и PDF.
+Processes downloaded files to be added to the context Claude.
+Supports text files, images and PDF.
 """
 
 import base64
@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)
 
 
 class FileType(Enum):
-    """Типы поддерживаемых файлов"""
+    """Supported File Types"""
     TEXT = "text"
     IMAGE = "image"
     PDF = "pdf"
@@ -26,14 +26,14 @@ class FileType(Enum):
 
 @dataclass
 class ProcessedFile:
-    """Результат обработки файла"""
+    """File processing result"""
     file_type: FileType
     filename: str
-    content: str  # Текстовое содержимое или base64 для изображений
+    content: str  # Text content or base64 for images
     mime_type: str
     size_bytes: int
     error: Optional[str] = None
-    saved_path: Optional[str] = None  # Путь к сохраненному файлу в рабочей директории
+    saved_path: Optional[str] = None  # Path to the saved file in the working directory
 
     @property
     def is_valid(self) -> bool:
@@ -42,20 +42,20 @@ class ProcessedFile:
 
 class FileProcessorService:
     """
-    Сервис обработки файлов для добавления в контекст Claude.
+    File processing service for adding to context Claude.
 
-    Поддерживаемые форматы:
-    - Текстовые: .md, .txt, .py, .js, .ts, .json, .yaml, .yml, .toml, .xml, .html, .css, .go, .rs, .java, .kt
-    - Изображения: .png, .jpg, .jpeg, .gif, .webp
-    - PDF: .pdf (конвертация в текст)
+    Supported Formats:
+    - Text: .md, .txt, .py, .js, .ts, .json, .yaml, .yml, .toml, .xml, .html, .css, .go, .rs, .java, .kt
+    - Images: .png, .jpg, .jpeg, .gif, .webp
+    - PDF: .pdf (convert to text)
     """
 
-    # Ограничения размера
+    # Size restrictions
     MAX_TEXT_SIZE = 1 * 1024 * 1024  # 1 MB
     MAX_IMAGE_SIZE = 5 * 1024 * 1024  # 5 MB
     MAX_PDF_SIZE = 2 * 1024 * 1024    # 2 MB
 
-    # Поддерживаемые расширения
+    # Supported Extensions
     TEXT_EXTENSIONS = {
         ".md", ".txt", ".py", ".js", ".ts", ".tsx", ".jsx",
         ".json", ".yaml", ".yml", ".toml", ".xml", ".html",
@@ -80,7 +80,7 @@ class FileProcessorService:
         ".webp": "image/webp",
     }
 
-    # Языки для подсветки синтаксиса
+    # Languages ​​for syntax highlighting
     LANG_MAP = {
         ".py": "python",
         ".js": "javascript",
@@ -126,7 +126,7 @@ class FileProcessorService:
     }
 
     def detect_file_type(self, filename: str) -> FileType:
-        """Определить тип файла по расширению"""
+        """Determine file type by extension"""
         ext = self._get_extension(filename)
 
         if ext in self.TEXT_EXTENSIONS:
@@ -136,20 +136,20 @@ class FileProcessorService:
         elif ext in self.PDF_EXTENSIONS:
             return FileType.PDF
         else:
-            # Проверка на файлы без расширения (Dockerfile, Makefile, etc.)
+            # Checking for files without extension (Dockerfile, Makefile, etc.)
             basename = os.path.basename(filename).lower()
             if basename in {"dockerfile", "makefile", "rakefile", "gemfile", "procfile"}:
                 return FileType.TEXT
             return FileType.UNSUPPORTED
 
     def _get_extension(self, filename: str) -> str:
-        """Получить расширение файла в lowercase"""
+        """Get file extension in lowercase"""
         _, ext = os.path.splitext(filename.lower())
         return ext
 
     def validate_file(self, filename: str, size: int) -> Tuple[bool, Optional[str]]:
         """
-        Валидация файла перед обработкой.
+        File validation before processing.
 
         Returns:
             Tuple[is_valid, error_message]
@@ -157,8 +157,8 @@ class FileProcessorService:
         file_type = self.detect_file_type(filename)
 
         if file_type == FileType.UNSUPPORTED:
-            ext = self._get_extension(filename) or "(нет расширения)"
-            return False, f"Неподдерживаемый тип файла: {ext}"
+            ext = self._get_extension(filename) or "(no extension)"
+            return False, f"Unsupported file type: {ext}"
 
         max_size = {
             FileType.TEXT: self.MAX_TEXT_SIZE,
@@ -168,7 +168,7 @@ class FileProcessorService:
 
         if size > max_size:
             max_mb = max_size / (1024 * 1024)
-            return False, f"Файл слишком большой (максимум {max_mb:.1f} MB)"
+            return False, f"The file is too large (max. {max_mb:.1f} MB)"
 
         return True, None
 
@@ -179,21 +179,21 @@ class FileProcessorService:
         mime_type: Optional[str] = None
     ) -> ProcessedFile:
         """
-        Обработать файл и вернуть готовый для Claude контент.
+        Process the file and return it ready for Claude content.
 
         Args:
-            file_content: Содержимое файла как BytesIO
-            filename: Имя файла
-            mime_type: MIME тип (опционально)
+            file_content: File contents as BytesIO
+            filename: File name
+            mime_type: MIME type (optional)
 
         Returns:
-            ProcessedFile с готовым контентом
+            ProcessedFile with ready-made content
         """
         file_type = self.detect_file_type(filename)
         content_bytes = file_content.read()
         size = len(content_bytes)
 
-        # Валидация
+        # Validation
         is_valid, error = self.validate_file(filename, size)
         if not is_valid:
             return ProcessedFile(
@@ -223,7 +223,7 @@ class FileProcessorService:
                     content="",
                     mime_type="",
                     size_bytes=size,
-                    error="Неподдерживаемый тип файла"
+                    error="Unsupported file type"
                 )
 
             logger.info(f"Processed file: {filename} ({file_type.value}, {size} bytes)")
@@ -244,12 +244,12 @@ class FileProcessorService:
                 content="",
                 mime_type=mime_type or "",
                 size_bytes=size,
-                error=f"Ошибка обработки: {str(e)}"
+                error=f"Processing error: {str(e)}"
             )
 
     def _process_text(self, content_bytes: bytes) -> str:
-        """Обработать текстовый файл"""
-        # Попытка декодировать как UTF-8, затем latin-1 как fallback
+        """Process text file"""
+        # Trying to decode as UTF-8, then latin-1 How fallback
         try:
             return content_bytes.decode("utf-8")
         except UnicodeDecodeError:
@@ -259,14 +259,14 @@ class FileProcessorService:
                 return content_bytes.decode("utf-8", errors="replace")
 
     def _process_image(self, content_bytes: bytes) -> str:
-        """Обработать изображение - вернуть base64"""
+        """Process image - return base64"""
         return base64.b64encode(content_bytes).decode("utf-8")
 
     async def _process_pdf(self, content_bytes: bytes) -> str:
         """
-        Обработать PDF - извлечь текст.
+        Process PDF - extract text.
 
-        Требует pypdf или pdfplumber.
+        Requires pypdf or pdfplumber.
         """
         try:
             from pypdf import PdfReader
@@ -277,19 +277,19 @@ class FileProcessorService:
             for i, page in enumerate(reader.pages):
                 page_text = page.extract_text()
                 if page_text:
-                    text_parts.append(f"--- Страница {i + 1} ---\n{page_text}")
+                    text_parts.append(f"--- Page {i + 1} ---\n{page_text}")
 
             if not text_parts:
-                return "[PDF: не удалось извлечь текст (возможно, отсканированный документ)]"
+                return "[PDF: Failed to extract text (possibly a scanned document)]"
 
             return "\n\n".join(text_parts)
 
         except ImportError:
             logger.warning("pypdf not installed, PDF processing unavailable")
-            return "[PDF: pypdf не установлен - содержимое недоступно. Установите: pip install pypdf]"
+            return "[PDF: pypdf not installed - content is not available. Install: pip install pypdf]"
         except Exception as e:
             logger.error(f"PDF extraction error: {e}")
-            return f"[PDF: ошибка извлечения текста - {str(e)}]"
+            return f"[PDF: text extraction error - {str(e)}]"
 
     def save_to_working_dir(
         self,
@@ -297,29 +297,29 @@ class FileProcessorService:
         working_dir: str
     ) -> Optional[str]:
         """
-        Сохранить файл в рабочую директорию проекта.
+        Save the file to the project's working directory.
 
         Args:
-            processed_file: Обработанный файл
-            working_dir: Рабочая директория проекта
+            processed_file: Processed file
+            working_dir: Project working directory
 
         Returns:
-            Путь к сохраненному файлу или None при ошибке
+            Path to the saved file or None in case of error
         """
         try:
-            # Создаём папку .uploads для временных файлов
+            # Create a folder .uploads for temporary files
             uploads_dir = os.path.join(working_dir, ".uploads")
             os.makedirs(uploads_dir, exist_ok=True)
 
             file_path = os.path.join(uploads_dir, processed_file.filename)
 
             if processed_file.file_type == FileType.IMAGE:
-                # Декодируем base64 и сохраняем
+                # Decoding base64 and save
                 image_data = base64.b64decode(processed_file.content)
                 with open(file_path, "wb") as f:
                     f.write(image_data)
             else:
-                # Текстовые файлы сохраняем как есть
+                # Save text files as is
                 with open(file_path, "w", encoding="utf-8") as f:
                     f.write(processed_file.content)
 
@@ -338,53 +338,53 @@ class FileProcessorService:
         working_dir: Optional[str] = None
     ) -> str:
         """
-        Форматировать обработанный файл для добавления в prompt.
+        Format the processed file for adding to prompt.
 
         Args:
-            processed_file: Обработанный файл
-            task_text: Текст задачи пользователя
-            working_dir: Рабочая директория для сохранения изображений
+            processed_file: Processed file
+            task_text: User task text
+            working_dir: Working directory for saving images
 
         Returns:
-            Отформатированный prompt с файлом
+            Formatted prompt with file
         """
         if processed_file.error:
-            error_block = f"[Ошибка обработки файла {processed_file.filename}: {processed_file.error}]"
+            error_block = f"[File processing error {processed_file.filename}: {processed_file.error}]"
             if task_text:
                 return f"{error_block}\n\n{task_text}"
             return error_block
 
         if processed_file.file_type == FileType.TEXT:
-            # Для текстовых файлов - вставляем содержимое в код-блок
+            # For text files - insert the content into the code block
             lang = self._detect_language(processed_file.filename)
-            file_block = f"📎 **Файл: {processed_file.filename}** ({processed_file.size_bytes // 1024} KB)\n```{lang}\n{processed_file.content}\n```"
+            file_block = f"📎 **File: {processed_file.filename}** ({processed_file.size_bytes // 1024} KB)\n```{lang}\n{processed_file.content}\n```"
 
             if task_text:
                 return f"{file_block}\n\n---\n\n{task_text}"
             return file_block
 
         elif processed_file.file_type == FileType.IMAGE:
-            # Для изображений - сохраняем в рабочую директорию и указываем путь
+            # For images - save to the working directory and specify the path
             if working_dir:
                 saved_path = self.save_to_working_dir(processed_file, working_dir)
                 if saved_path:
                     image_instruction = (
-                        f"📎 **Изображение сохранено:** `{saved_path}`\n\n"
-                        f"Используй Read tool чтобы прочитать и проанализировать это изображение.\n"
-                        f"Путь к файлу: {saved_path}"
+                        f"📎 **Image saved:** `{saved_path}`\n\n"
+                        f"Use Read tool to read and analyze this image.\n"
+                        f"File path: {saved_path}"
                     )
                     if task_text:
-                        return f"{image_instruction}\n\n---\n\n**Задача пользователя:** {task_text}"
+                        return f"{image_instruction}\n\n---\n\n**User task:** {task_text}"
                     return image_instruction
 
-            # Fallback если не удалось сохранить
-            image_marker = f"[Изображение: {processed_file.filename} - не удалось сохранить для анализа]"
+            # Fallback if you couldn't save
+            image_marker = f"[Image: {processed_file.filename} - could not save for analysis]"
             if task_text:
                 return f"{image_marker}\n\n{task_text}"
             return image_marker
 
         elif processed_file.file_type == FileType.PDF:
-            # PDF - извлеченный текст
+            # PDF - extracted text
             file_block = f"📎 **PDF: {processed_file.filename}** ({processed_file.size_bytes // 1024} KB)\n```\n{processed_file.content}\n```"
 
             if task_text:
@@ -394,12 +394,12 @@ class FileProcessorService:
         return task_text
 
     def _detect_language(self, filename: str) -> str:
-        """Определить язык для подсветки синтаксиса"""
+        """Define the language for syntax highlighting"""
         ext = self._get_extension(filename)
         return self.LANG_MAP.get(ext, "")
 
     def get_supported_extensions(self) -> dict:
-        """Получить список поддерживаемых расширений по типам"""
+        """Get a list of supported extensions by type"""
         return {
             "text": sorted(self.TEXT_EXTENSIONS),
             "image": sorted(self.IMAGE_EXTENSIONS),
@@ -413,37 +413,37 @@ class FileProcessorService:
         working_dir: Optional[str] = None
     ) -> str:
         """
-        Форматировать несколько файлов для добавления в prompt.
+        Format multiple files to add to prompt.
 
-        Используется для медиагрупп (альбомов) - когда пользователь
-        отправляет несколько файлов одним сообщением.
+        Used for media groups (albums) - when the user
+        sends multiple files in one message.
 
         Args:
-            files: Список обработанных файлов
-            task_text: Текст задачи пользователя
-            working_dir: Рабочая директория для сохранения изображений
+            files: List of processed files
+            task_text: User task text
+            working_dir: Working directory for saving images
 
         Returns:
-            Отформатированный prompt со всеми файлами
+            Formatted prompt with all files
         """
         if not files:
             return task_text
 
         if len(files) == 1:
-            # Один файл - используем обычный метод
+            # One file - use the usual method
             return self.format_for_prompt(files[0], task_text, working_dir)
 
-        # Несколько файлов - формируем комбинированный prompt
+        # Several files - creating a combined one prompt
         file_blocks = []
 
         for i, pf in enumerate(files, 1):
             if pf.error:
-                file_blocks.append(f"📎 **Файл {i}: {pf.filename}** - Ошибка: {pf.error}")
+                file_blocks.append(f"📎 **File {i}: {pf.filename}** - Error: {pf.error}")
                 continue
 
             if pf.file_type == FileType.TEXT:
                 lang = self._detect_language(pf.filename)
-                block = f"📎 **Файл {i}: {pf.filename}** ({pf.size_bytes // 1024} KB)\n```{lang}\n{pf.content}\n```"
+                block = f"📎 **File {i}: {pf.filename}** ({pf.size_bytes // 1024} KB)\n```{lang}\n{pf.content}\n```"
                 file_blocks.append(block)
 
             elif pf.file_type == FileType.IMAGE:
@@ -451,47 +451,47 @@ class FileProcessorService:
                     saved_path = self.save_to_working_dir(pf, working_dir)
                     if saved_path:
                         block = (
-                            f"📎 **Изображение {i}: {pf.filename}** сохранено в `{saved_path}`\n"
-                            f"Используй Read tool для анализа: {saved_path}"
+                            f"📎 **Image {i}: {pf.filename}** saved in `{saved_path}`\n"
+                            f"Use Read tool for analysis: {saved_path}"
                         )
                         file_blocks.append(block)
                         continue
 
                 # Fallback
-                file_blocks.append(f"📎 **Изображение {i}: {pf.filename}** - не удалось сохранить")
+                file_blocks.append(f"📎 **Image {i}: {pf.filename}** - failed to save")
 
             elif pf.file_type == FileType.PDF:
                 block = f"📎 **PDF {i}: {pf.filename}** ({pf.size_bytes // 1024} KB)\n```\n{pf.content}\n```"
                 file_blocks.append(block)
 
-        # Объединяем все блоки
+        # Combine all blocks
         files_section = "\n\n".join(file_blocks)
 
         if task_text:
-            return f"{files_section}\n\n---\n\n**Задача пользователя:** {task_text}"
+            return f"{files_section}\n\n---\n\n**User task:** {task_text}"
 
         return files_section
 
     def get_files_summary(self, files: list[ProcessedFile]) -> str:
         """
-        Получить краткое описание списка файлов.
+        Get a short description of the file list.
 
         Args:
-            files: Список обработанных файлов
+            files: List of processed files
 
         Returns:
-            Строка вида "3 файла: image1.jpg, image2.jpg, +1"
+            String of the form "3 file: image1.jpg, image2.jpg, +1"
         """
         if not files:
-            return "нет файлов"
+            return "no files"
 
         total = len(files)
         if total == 1:
             return files[0].filename
 
-        # Показываем первые 2 имени, остальные как "+N"
+        # We show the first 2 name, the rest as "+N"
         names = [f.filename for f in files[:2]]
         if total > 2:
             names.append(f"+{total - 2}")
 
-        return f"{total} файлов: {', '.join(names)}"
+        return f"{total} files: {', '.join(names)}"

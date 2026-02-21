@@ -120,7 +120,7 @@ class Translator:
     def language_name(self) -> str:
         """Get human-readable language name."""
         names = {
-            "ru": "Русский",
+            "ru": "Russian",
             "en": "English",
             "zh": "中文",
         }

@@ -316,7 +316,7 @@ server.setRequestHandler(CallToolRequestSchema, async (request) => {
           const result = await sendDocument(
             chatId,
             tempPath,
-            `📋 План: ${title}`
+            `📋 Plan: ${title}`
           );
 
           return {

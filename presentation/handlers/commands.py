@@ -76,7 +76,7 @@ class CommandHandlers:
         # If no language set, show language selection first
         if not user_lang or user_lang == "":
             await message.answer(
-                "🌐 <b>Select language / Выберите язык / 选择语言</b>",
+                "🌐 <b>Select language / Select language / 选择语言</b>",
                 parse_mode="HTML",
                 reply_markup=Keyboards.language_select()
             )
@@ -149,61 +149,61 @@ class CommandHandlers:
     async def help(self, message: Message) -> None:
         """Handle /help command"""
         help_text = """
-🤖 <b>Claude Code Telegram Proxy - Справка</b>
+🤖 <b>Claude Code Telegram Proxy - Reference</b>
 
-<b>Навигация и проекты:</b>
-/cd - Навигация по папкам
-/change - Сменить проект
-/fresh - Очистить контекст
+<b>Navigation and projects:</b>
+/cd - Folder navigation
+/change - Change project
+/fresh - Clear context
 
-<b>Управление контекстом:</b>
-/context new - Создать новый контекст
-/context list - Список контекстов
-/context clear - Очистить текущий контекст
-/vars - Управление переменными контекста
+<b>Context Management:</b>
+/context new - Create a new context
+/context list - List of contexts
+/context clear - Clear current context
+/vars - Managing Context Variables
 
 <b>Claude Code:</b>
-/yolo - YOLO режим (авто-подтверждение)
-/plugins - Показать плагины
-/cancel - Отменить задачу
-/status - Статус Claude Code
+/yolo - YOLO mode (auto-confirm)
+/plugins - Show plugins
+/cancel - Cancel task
+/status - Status Claude Code
 
-<b>Мониторинг:</b>
-/metrics - Метрики системы (CPU, RAM, диск)
-/docker - Список Docker контейнеров
+<b>Monitoring:</b>
+/metrics - System metrics (CPU, RAM, disk)
+/docker - List Docker containers
 
-<b>Основные команды:</b>
-/start - Запустить бота
-/help - Показать справку
-/stats - Ваша статистика
-/clear - Очистить историю чата
+<b>Basic Commands:</b>
+/start - Launch bot
+/help - Show help
+/stats - Your statistics
+/clear - Clear chat history
 
-<b>Как это работает:</b>
-1. Отправьте задачу сообщением
-2. Claude Code начнёт работу
-3. Вы увидите вывод в реальном времени
-4. Подтверждайте/отклоняйте операции
-5. Отвечайте на вопросы Claude
+<b>How does this work:</b>
+1. Send the task by message
+2. Claude Code will start working
+3. You will see the output in real time
+4. Confirm/reject transactions
+5. Answer questions Claude
 
 <b>HITL (Human-in-the-Loop):</b>
-🔐 <b>Разрешения</b> - Подтверждение опасных операций
-❓ <b>Вопросы</b> - Ответы на вопросы Claude
-🛑 <b>Отмена</b> - Остановить задачу в любой момент
+🔐 <b>Permissions</b> - Confirmation of hazardous operations
+❓ <b>Questions</b> - Answers to questions Claude
+🛑 <b>Cancel</b> - Stop a task at any time
 
-<b>Примеры:</b>
-• "Создай Python скрипт, который выводит hello"
-• "Прочитай файл README.md"
-• "Запусти npm install в проекте"
-• "Исправь баг в main.py"
+<b>Examples:</b>
+• "Create Python script that outputs hello"
+• "Read the file README.md"
+• "Launch npm install in the project"
+• "Fix the bug in main.py"
 
-Просто опишите что нужно сделать!
+Just describe what needs to be done!
         """
         await message.answer(help_text, parse_mode="HTML")
 
     async def clear(self, message: Message) -> None:
         """Handle /clear command"""
         await self.bot_service.clear_session(message.from_user.id)
-        await message.answer("🧹 История чата очищена!")
+        await message.answer("🧹 Chat history cleared!")
 
     async def stats(self, message: Message) -> None:
         """Handle /stats command"""
@@ -212,42 +212,42 @@ class CommandHandlers:
         # Build command stats safely
         by_status = stats.get('commands', {}).get('by_status', {})
         status_lines = [f"  • {k}: {v}" for k, v in by_status.items() if k != 'total']
-        status_text = "\n".join(status_lines) if status_lines else "  Нет данных"
+        status_text = "\n".join(status_lines) if status_lines else "  No data"
 
-        text = f"""📊 <b>Ваша статистика</b>
+        text = f"""📊 <b>Your statistics</b>
 
-<b>Пользователь:</b> {stats.get('user', {}).get('username', 'Неизвестно')}
-<b>Роль:</b> {stats.get('user', {}).get('role', 'user')}
-<b>Статус:</b> {'✅ Активен' if stats.get('user', {}).get('is_active') else '❌ Неактивен'}
+<b>User:</b> {stats.get('user', {}).get('username', 'Unknown')}
+<b>Role:</b> {stats.get('user', {}).get('role', 'user')}
+<b>Status:</b> {'✅ Active' if stats.get('user', {}).get('is_active') else '❌ Inactive'}
 
-<b>Команды:</b>
-• Всего: {stats.get('commands', {}).get('total', 0)}
+<b>Teams:</b>
+• Total: {stats.get('commands', {}).get('total', 0)}
 {status_text}
 
-<b>Сессии:</b>
-• Всего: {stats.get('sessions', {}).get('total', 0)}
-• Активных: {stats.get('sessions', {}).get('active', 0)}"""
+<b>Sessions:</b>
+• Total: {stats.get('sessions', {}).get('total', 0)}
+• Active: {stats.get('sessions', {}).get('active', 0)}"""
         await message.answer(text, parse_mode="HTML")
 
     async def metrics(self, message: Message) -> None:
-        """Handle /metrics command and 📊 Метрики button"""
+        """Handle /metrics command and 📊 Metrics button"""
         info = await self.bot_service.get_system_info()
 
         metrics = info["metrics"]
         lines = [
-            "📊 <b>Метрики системы</b>",
+            "📊 <b>System metrics</b>",
             "",
             f"💻 <b>CPU:</b> {metrics['cpu_percent']:.1f}%",
-            f"🧠 <b>Память:</b> {metrics['memory_percent']:.1f}% ({metrics['memory_used_gb']}GB / {metrics['memory_total_gb']}GB)",
-            f"💾 <b>Диск:</b> {metrics['disk_percent']:.1f}% ({metrics['disk_used_gb']}GB / {metrics['disk_total_gb']}GB)",
+            f"🧠 <b>Memory:</b> {metrics['memory_percent']:.1f}% ({metrics['memory_used_gb']}GB / {metrics['memory_total_gb']}GB)",
+            f"💾 <b>Disk:</b> {metrics['disk_percent']:.1f}% ({metrics['disk_used_gb']}GB / {metrics['disk_total_gb']}GB)",
         ]
 
         if metrics.get('load_average', [0])[0] > 0:
-            lines.append(f"📈 <b>Нагрузка:</b> {metrics['load_average'][0]:.2f}")
+            lines.append(f"📈 <b>Load:</b> {metrics['load_average'][0]:.2f}")
 
         # Show alerts
         if info.get("alerts"):
-            lines.append("\n⚠️ <b>Предупреждения:</b>")
+            lines.append("\n⚠️ <b>Warnings:</b>")
             lines.extend(info["alerts"])
 
         await message.answer("\n".join(lines), parse_mode="HTML", reply_markup=Keyboards.system_metrics(show_back=True, back_to="menu:system"))
@@ -261,9 +261,9 @@ class CommandHandlers:
 
             if not containers:
                 await message.answer(
-                    "🐳 <b>Docker контейнеры</b>\n\n"
-                    "Контейнеры не найдены.\n\n"
-                    "Используйте Claude Code для управления Docker:\n"
+                    "🐳 <b>Docker containers</b>\n\n"
+                    "No containers found.\n\n"
+                    "Use Claude Code for management Docker:\n"
                     "• 'docker ps -a'\n"
                     "• 'docker run ...'",
                     parse_mode="HTML"
@@ -271,12 +271,12 @@ class CommandHandlers:
                 return
 
             # Build container list with action buttons
-            lines = ["🐳 <b>Docker контейнеры:</b>\n"]
+            lines = ["🐳 <b>Docker containers:</b>\n"]
             for c in containers:
                 status_emoji = "🟢" if c["status"] == "running" else "🔴"
                 lines.append(f"\n{status_emoji} <b>{c['name']}</b>")
-                lines.append(f"   Статус: {c['status']}")
-                lines.append(f"   Образ: <code>{c['image'][:30]}</code>")
+                lines.append(f"   Status: {c['status']}")
+                lines.append(f"   Image: <code>{c['image'][:30]}</code>")
 
             text = "\n".join(lines)
             await message.answer(
@@ -288,7 +288,7 @@ class CommandHandlers:
         except Exception as e:
             logger.error(f"Error getting docker containers: {e}")
             await message.answer(
-                f"🐳 Docker\n\n❌ Ошибка: {e}",
+                f"🐳 Docker\n\n❌ Error: {e}",
                 parse_mode=None
             )
 
@@ -307,12 +307,12 @@ class CommandHandlers:
             if self.message_handlers:
                 self.message_handlers.set_working_dir(user_id, path)
                 await message.answer(
-                    f"📁 <b>Рабочая папка установлена:</b>\n<code>{path}</code>",
+                    f"📁 <b>Working folder set:</b>\n<code>{path}</code>",
                     parse_mode="HTML"
                 )
             else:
                 await message.answer(
-                    "⚠️ Обработчики сообщений не инициализированы",
+                    "⚠️ Message handlers are not initialized",
                     parse_mode=None
                 )
         else:
@@ -328,9 +328,9 @@ class CommandHandlers:
                     projects.append({"name": os.path.basename(dir_path) or dir_path, "path": dir_path})
 
             await message.answer(
-                f"📁 <b>Текущая рабочая папка:</b>\n<code>{current_dir}</code>\n\n"
-                f"Используйте `/project <путь>` для смены.\n\n"
-                f"Пример:\n<code>/project /home/myproject</code>",
+                f"📁 <b>Current working folder:</b>\n<code>{current_dir}</code>\n\n"
+                f"Use `/project <path>` for a change.\n\n"
+                f"Example:\n<code>/project /home/myproject</code>",
                 parse_mode="HTML",
                 reply_markup=Keyboards.project_selection(projects) if projects else None
             )
@@ -340,7 +340,7 @@ class CommandHandlers:
         user_id = message.from_user.id
 
         if not self.project_service:
-            await message.answer("⚠️ Сервис проектов не инициализирован")
+            await message.answer("⚠️ The project service is not initialized")
             return
 
         from domain.value_objects.user_id import UserId
@@ -350,21 +350,21 @@ class CommandHandlers:
         projects = await self.project_service.list_projects(uid)
         current = await self.project_service.get_current(uid)
 
-        current_name = current.name if current else "Нет"
+        current_name = current.name if current else "No"
         current_id = current.id if current else None
 
         if projects:
             text = (
-                f"📂 <b>Сменить проект</b>\n\n"
-                f"Текущий: <b>{current_name}</b>\n\n"
-                f"Выберите проект:"
+                f"📂 <b>Change project</b>\n\n"
+                f"Current: <b>{current_name}</b>\n\n"
+                f"Select a project:"
             )
             keyboard = Keyboards.project_list(projects, current_id, show_back=True, back_to="menu:projects")
         else:
             text = (
-                f"📂 <b>Нет проектов</b>\n\n"
-                f"У вас пока нет проектов.\n"
-                f"Создайте новый или откройте `/root/projects`"
+                f"📂 <b>No projects</b>\n\n"
+                f"You don't have any projects yet.\n"
+                f"Create a new one or open `/root/projects`"
             )
             keyboard = Keyboards.project_list([], None, show_create=True, show_back=True, back_to="menu:projects")
 
@@ -375,7 +375,7 @@ class CommandHandlers:
         user_id = message.from_user.id
 
         if not self.project_service or not self.context_service:
-            await message.answer("⚠️ Сервисы не инициализированы")
+            await message.answer("⚠️ Services are not initialized")
             return
 
         from domain.value_objects.user_id import UserId
@@ -385,26 +385,26 @@ class CommandHandlers:
         project = await self.project_service.get_current(uid)
         if not project:
             await message.answer(
-                "❌ Нет активного проекта\n\n"
-                "Используйте /change для выбора проекта.",
+                "❌ No active project\n\n"
+                "Use /change to select a project.",
                 parse_mode=None
             )
             return
 
         # Get current context
         current_ctx = await self.context_service.get_current(project.id)
-        ctx_name = current_ctx.name if current_ctx else "не выбран"
+        ctx_name = current_ctx.name if current_ctx else "not selected"
         msg_count = current_ctx.message_count if current_ctx else 0
         has_session = current_ctx.has_session if current_ctx else False
 
         # Build status text
-        session_status = "📜 Есть сессия" if has_session else "✨ Чистый"
+        session_status = "📜 There is a session" if has_session else "✨ Clean"
         text = (
-            f"💬 Управление контекстами\n\n"
-            f"📂 Проект: {project.name}\n"
-            f"💬 Контекст: {ctx_name}\n"
-            f"📝 Сообщений: {msg_count}\n"
-            f"📌 Статус: {session_status}"
+            f"💬 Managing Contexts\n\n"
+            f"📂 Project: {project.name}\n"
+            f"💬 Context: {ctx_name}\n"
+            f"📝 Messages: {msg_count}\n"
+            f"📌 Status: {session_status}"
         )
 
         keyboard = Keyboards.context_menu(ctx_name, project.name, msg_count, show_back=True, back_to="menu:context")
@@ -441,10 +441,10 @@ class CommandHandlers:
                 )
 
                 await message.answer(
-                    f"✅ Новый контекст создан!\n\n"
-                    f"📂 Проект: {project.name}\n"
-                    f"💬 Контекст: {new_context.name}\n\n"
-                    f"Начните новый диалог.",
+                    f"✅ New context created!\n\n"
+                    f"📂 Project: {project.name}\n"
+                    f"💬 Context: {new_context.name}\n\n"
+                    f"Start a new conversation.",
                     parse_mode=None
                 )
                 return
@@ -452,8 +452,8 @@ class CommandHandlers:
         # No project/context - just clear bot service session
         await self.bot_service.clear_session(user_id)
         await message.answer(
-            "🧹 Сессия очищена!\n\n"
-            "Следующее сообщение начнёт новый диалог.",
+            "🧹 Session cleared!\n\n"
+            "The next message will start a new conversation.",
             parse_mode=None
         )
 
@@ -469,7 +469,7 @@ class CommandHandlers:
         user_id = message.from_user.id
 
         if not self.message_handlers:
-            await message.answer("⚠️ Обработчики сообщений не инициализированы")
+            await message.answer("⚠️ Message handlers are not initialized")
             return
 
         current = self.message_handlers.is_yolo_mode(user_id)
@@ -567,18 +567,18 @@ class CommandHandlers:
             if sdk_service:
                 cancelled = await sdk_service.cancel_task(user_id)
                 if cancelled:
-                    await message.answer("🛑 <b>Задача отменена</b> (SDK)", parse_mode="HTML")
+                    await message.answer("🛑 <b>Task canceled</b> (SDK)", parse_mode="HTML")
                     return
 
         # Try CLI fallback
         if self.claude_proxy:
             cli_cancelled = await self.claude_proxy.cancel_task(user_id)
             if cli_cancelled:
-                await message.answer("🛑 <b>Задача отменена</b> (CLI)", parse_mode="HTML")
+                await message.answer("🛑 <b>Task canceled</b> (CLI)", parse_mode="HTML")
                 return
 
         if not cancelled:
-            await message.answer("ℹ️ Сейчас нет запущенных задач")
+            await message.answer("ℹ️ There are currently no running tasks")
 
     async def status(self, message: Message) -> None:
         """Handle /status command - show Claude Code status"""
@@ -588,13 +588,13 @@ class CommandHandlers:
         installed, version_info = await self.claude_proxy.check_claude_installed()
 
         # Check SDK availability
-        sdk_status = "❌ Недоступен"
+        sdk_status = "❌ Not available"
         sdk_running = False
         if self.message_handlers and hasattr(self.message_handlers, 'sdk_service'):
             sdk_service = self.message_handlers.sdk_service
             if sdk_service:
                 sdk_ok, sdk_msg = await sdk_service.check_sdk_available()
-                sdk_status = "🟢 Доступен (HITL включён)" if sdk_ok else f"🔴 {sdk_msg}"
+                sdk_status = "🟢 Available (HITL included)" if sdk_ok else f"🔴 {sdk_msg}"
                 sdk_running = sdk_service.is_task_running(user_id)
 
         # Check if task is running (either backend)
@@ -607,30 +607,30 @@ class CommandHandlers:
             working_dir = self.message_handlers.get_working_dir(user_id)
 
         cli_emoji = "🟢" if installed else "🔴"
-        task_status = "🔄 Работает" if is_running else "⏸️ Ожидание"
+        task_status = "🔄 Works" if is_running else "⏸️ Expectation"
 
         # Determine backend in use
-        backend = "SDK" if sdk_running else ("CLI" if cli_running else "Ожидание")
+        backend = "SDK" if sdk_running else ("CLI" if cli_running else "Expectation")
 
         text = f"""
-📊 <b>Статус Claude Code</b>
+📊 <b>Status Claude Code</b>
 
 <b>CLI:</b> {cli_emoji} {version_info}
 <b>SDK:</b> {sdk_status}
-<b>Задача:</b> {task_status} ({backend})
-<b>Рабочая папка:</b> <code>{working_dir}</code>
+<b>Task:</b> {task_status} ({backend})
+<b>Working folder:</b> <code>{working_dir}</code>
 """
 
         if is_running:
-            text += "\n\nИспользуйте /cancel чтобы остановить текущую задачу."
+            text += "\n\nUse /cancel to stop the current task."
 
-        text += "\n\nИспользуйте /diagnose для полной диагностики."
+        text += "\n\nUse /diagnose for complete diagnostics."
 
         await message.answer(text, parse_mode="HTML")
 
     async def diagnose(self, message: Message) -> None:
         """Handle /diagnose command - run full Claude Code diagnostics"""
-        await message.answer("🔍 Запуск диагностики... (может занять до 30 секунд)")
+        await message.answer("🔍 Running diagnostics... (may take up to 30 seconds)")
 
         try:
             results = await run_diagnostics(self.claude_proxy.claude_path)
@@ -671,8 +671,8 @@ class CommandHandlers:
         # Check if message handlers are available
         if not self.message_handlers:
             await message.answer(
-                "⚠️ Обработчики сообщений не инициализированы.\n"
-                "Не могу передать команду Claude Code.",
+                "⚠️ Message handlers are not initialized.\n"
+                "I can't send the command Claude Code.",
                 parse_mode=None
             )
             return
@@ -687,7 +687,7 @@ class CommandHandlers:
                 prompt = self.message_handlers.file_processor_service.format_for_prompt(
                     processed_file, prompt
                 )
-                file_info = f"\n📎 Файл: {processed_file.filename}"
+                file_info = f"\n📎 File: {processed_file.filename}"
                 logger.info(f"[{user_id}] Added cached file to command: {processed_file.filename}")
 
             # Check if reply message has document/photo
@@ -700,13 +700,13 @@ reply, message.bot
                     prompt = self.message_handlers.file_processor_service.format_for_prompt(
                         processed_file, prompt
                     )
-                    file_info = f"\n📎 Файл: {processed_file.filename}"
+                    file_info = f"\n📎 File: {processed_file.filename}"
                     logger.info(f"[{user_id}] Added reply file to command: {processed_file.filename}")
 
         # Inform user that command is being passed through
         await message.answer(
-            f"🔌 <b>Команда плагина:</b> <code>{skill_command}</code>{file_info}\n\n"
-            f"Передаю в Claude Code...",
+            f"🔌 <b>Plugin command:</b> <code>{skill_command}</code>{file_info}\n\n"
+            f"I pass it on to Claude Code...",
             parse_mode="HTML"
         )
 
@@ -728,12 +728,12 @@ reply, message.bot
         - Browse marketplace for new plugins
         """
         if not self.message_handlers or not hasattr(self.message_handlers, 'sdk_service'):
-            await message.answer("⚠️ SDK сервис не инициализирован")
+            await message.answer("⚠️ SDK the service is not initialized")
             return
 
         sdk_service = self.message_handlers.sdk_service
         if not sdk_service:
-            await message.answer("⚠️ SDK сервис не доступен")
+            await message.answer("⚠️ SDK service not available")
             return
 
         # Get enabled plugins info
@@ -741,12 +741,12 @@ reply, message.bot
 
         if not plugins:
             text = (
-                "🔌 <b>Плагины Claude Code</b>\n\n"
-                "Нет активных плагинов.\n\n"
-                "Нажмите 🛒 <b>Магазин</b> чтобы добавить плагины."
+                "🔌 <b>Plugins Claude Code</b>\n\n"
+                "No active plugins.\n\n"
+                "Click 🛒 <b>Shop</b> to add plugins."
             )
         else:
-            text = "🔌 <b>Плагины Claude Code</b>\n\n"
+            text = "🔌 <b>Plugins Claude Code</b>\n\n"
             for p in plugins:
                 name = p.get("name", "unknown")
                 desc = p.get("description", "")
@@ -759,7 +759,7 @@ reply, message.bot
                 if desc:
                     text += f"   <i>{desc}</i>\n"
 
-            text += f"\n<i>Всего: {len(plugins)} плагинов</i>"
+            text += f"\n<i>Total: {len(plugins)} plugins</i>"
 
         await message.answer(
             text,
@@ -782,7 +782,7 @@ reply, message.bot
         user_id = message.from_user.id
 
         if not self.project_service or not self.context_service:
-            await message.answer("⚠️ Сервисы не инициализированы")
+            await message.answer("⚠️ Services are not initialized")
             return
 
         from domain.value_objects.user_id import UserId
@@ -793,8 +793,8 @@ reply, message.bot
         project = await self.project_service.get_current(uid)
         if not project:
             await message.answer(
-                "❌ Нет активного проекта\n\n"
-                "Используйте /change для выбора проекта.",
+                "❌ No active project\n\n"
+                "Use /change to select a project.",
                 parse_mode=None
             )
             return
@@ -802,8 +802,8 @@ reply, message.bot
         context = await self.context_service.get_current(project.id)
         if not context:
             await message.answer(
-                "❌ Нет активного контекста\n\n"
-                "Используйте /context для создания контекста.",
+                "❌ No active context\n\n"
+                "Use /context to create context.",
                 parse_mode=None
             )
             return
@@ -815,7 +815,7 @@ reply, message.bot
             variables = await self.context_service.get_variables(context.id)
 
             if variables:
-                lines = [f"📋 Переменные контекста\n"]
+                lines = [f"📋 Context Variables\n"]
                 lines.append(f"📂 {project.name} / {context.name}\n")
                 for name in sorted(variables.keys()):
                     var = variables[name]
@@ -827,10 +827,10 @@ reply, message.bot
                 text = "\n".join(lines)
             else:
                 text = (
-                    f"📋 Переменные контекста\n\n"
+                    f"📋 Context Variables\n\n"
                     f"📂 {project.name} / {context.name}\n\n"
-                    f"Переменных пока нет.\n"
-                    f"Нажмите ➕ Добавить для создания."
+                    f"No variables yet.\n"
+                    f"Click ➕ Add to create."
                 )
 
             keyboard = Keyboards.variables_menu(variables, project.name, context.name, show_back=True, back_to="menu:context")
@@ -844,7 +844,7 @@ reply, message.bot
         if action == "set":
             if len(parts) < 3:
                 await message.answer(
-                    "❌ Использование: /vars set NAME value [description]",
+                    "❌ Usage: /vars set NAME value [description]",
                     parse_mode=None
                 )
                 return
@@ -854,17 +854,17 @@ reply, message.bot
             description = parts[3] if len(parts) > 3 else ""
 
             await self.context_service.set_variable(context.id, name, value, description)
-            resp = f"✅ Установлена переменная: {name}\n"
+            resp = f"✅ Variable set: {name}\n"
             if description:
-                resp += f"Описание: {description}\n"
-            resp += f"\nClaude будет использовать её автоматически."
+                resp += f"Description: {description}\n"
+            resp += f"\nClaude will use it automatically."
             await message.answer(resp, parse_mode=None)
             return
 
         if action == "del" or action == "delete":
             if len(parts) < 2:
                 await message.answer(
-                    "❌ Использование: /vars del NAME",
+                    "❌ Usage: /vars del NAME",
                     parse_mode=None
                 )
                 return
@@ -874,23 +874,23 @@ reply, message.bot
 
             if deleted:
                 await message.answer(
-                    f"🗑 Удалена переменная: {name}",
+                    f"🗑 Variable deleted: {name}",
                     parse_mode=None
                 )
             else:
                 await message.answer(
-                    f"⚠️ Переменная {name} не найдена",
+                    f"⚠️ Variable {name} not found",
                     parse_mode=None
                 )
             return
 
         # Unknown action
         await message.answer(
-            "❌ Неизвестная команда\n\n"
-            "Используйте /vars для интерактивного меню\n"
-            "или legacy команды:\n"
-            "/vars set NAME value [desc] - установить\n"
-            "/vars del NAME - удалить",
+            "❌ Unknown team\n\n"
+            "Use /vars for interactive menu\n"
+            "or legacy teams:\n"
+            "/vars set NAME value [desc] - install\n"
+            "/vars del NAME - delete",
             parse_mode=None
         )
 
@@ -910,9 +910,9 @@ reply, message.bot
         request_id = "test123"
 
         await message.answer(
-            "<b>❓ Тестовый вопрос от Claude</b>\n\n"
-            "Какой стек технологий использовать для API?\n\n"
-            "<i>Выберите вариант или введите свой:</i>",
+            "<b>❓ Test question from Claude</b>\n\n"
+            "Which technology stack to use for API?\n\n"
+            "<i>Select an option or enter your own:</i>",
             parse_mode="HTML",
             reply_markup=Keyboards.claude_question(user_id, options, request_id)
         )

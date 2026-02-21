@@ -240,7 +240,7 @@ class MenuHandlers:
             await self._handle_help(callback, action, state)
 
         else:
-            await callback.answer(f"Неизвестный раздел: {section}")
+            await callback.answer(f"Unknown section: {section}")
 
     async def handle_language_callback(self, callback: CallbackQuery, **kwargs):
         """Handle language selection callbacks (lang:ru, lang:en, lang:zh)"""
@@ -411,7 +411,7 @@ class MenuHandlers:
         user_id = callback.from_user.id
 
         if not self.project_service:
-            await callback.answer("Сервис проектов не инициализирован")
+            await callback.answer("The project service is not initialized")
             return
 
         from domain.value_objects.user_id import UserId
@@ -423,16 +423,16 @@ class MenuHandlers:
 
         if projects:
             text = (
-                f"📂 <b>Сменить проект</b>\n\n"
-                f"Текущий: <b>{current.name if current else 'Нет'}</b>\n\n"
-                f"Выберите проект:"
+                f"📂 <b>Change project</b>\n\n"
+                f"Current: <b>{current.name if current else 'No'}</b>\n\n"
+                f"Select a project:"
             )
             keyboard = Keyboards.project_list(projects, current_id, show_back=True, back_to="menu:projects")
         else:
             text = (
-                f"📂 <b>Нет проектов</b>\n\n"
-                f"У вас пока нет проектов.\n"
-                f"Создайте новый или откройте <code>/root/projects</code>"
+                f"📂 <b>No projects</b>\n\n"
+                f"You don't have any projects yet.\n"
+                f"Create a new one or open <code>/root/projects</code>"
             )
             keyboard = Keyboards.project_list([], None, show_create=True, show_back=True, back_to="menu:projects")
 
@@ -501,30 +501,30 @@ class MenuHandlers:
                 )
 
                 text = (
-                    f"✅ <b>Новый контекст создан!</b>\n\n"
-                    f"📂 Проект: {project.name}\n"
-                    f"💬 Контекст: {new_context.name}\n\n"
-                    f"Начните новый диалог."
+                    f"✅ <b>New context created!</b>\n\n"
+                    f"📂 Project: {project.name}\n"
+                    f"💬 Context: {new_context.name}\n\n"
+                    f"Start a new conversation."
                 )
             else:
-                text = "❌ Нет активного проекта. Выберите проект."
+                text = "❌ No active project. Select a project."
         else:
             await self.bot_service.clear_session(user_id)
-            text = "🧹 Сессия очищена! Следующее сообщение начнёт новый диалог."
+            text = "🧹 Session cleared! The next message will start a new conversation."
 
         await callback.message.edit_text(
             text,
             reply_markup=Keyboards.menu_back_only("menu:context"),
             parse_mode="HTML"
         )
-        await callback.answer("Контекст создан")
+        await callback.answer("Context created")
 
     async def _show_context_list(self, callback: CallbackQuery, state: FSMContext):
         """Show context management"""
         user_id = callback.from_user.id
 
         if not self.project_service or not self.context_service:
-            await callback.answer("Сервисы не инициализированы")
+            await callback.answer("Services are not initialized")
             return
 
         from domain.value_objects.user_id import UserId
@@ -533,7 +533,7 @@ class MenuHandlers:
         project = await self.project_service.get_current(uid)
         if not project:
             await callback.message.edit_text(
-                "❌ Нет активного проекта\n\nВыберите проект в разделе Проекты.",
+                "❌ No active project\n\nSelect a project in the Projects section.",
                 reply_markup=Keyboards.menu_back_only("menu:context"),
                 parse_mode="HTML"
             )
@@ -541,17 +541,17 @@ class MenuHandlers:
             return
 
         current_ctx = await self.context_service.get_current(project.id)
-        ctx_name = current_ctx.name if current_ctx else "не выбран"
+        ctx_name = current_ctx.name if current_ctx else "not selected"
         msg_count = current_ctx.message_count if current_ctx else 0
         has_session = current_ctx.has_session if current_ctx else False
 
-        session_status = "📜 Есть сессия" if has_session else "✨ Чистый"
+        session_status = "📜 There is a session" if has_session else "✨ Clean"
         text = (
-            f"💬 <b>Управление контекстами</b>\n\n"
-            f"📂 Проект: {project.name}\n"
-            f"💬 Контекст: {ctx_name}\n"
-            f"📝 Сообщений: {msg_count}\n"
-            f"📌 Статус: {session_status}"
+            f"💬 <b>Managing Contexts</b>\n\n"
+            f"📂 Project: {project.name}\n"
+            f"💬 Context: {ctx_name}\n"
+            f"📝 Messages: {msg_count}\n"
+            f"📌 Status: {session_status}"
         )
 
         keyboard = Keyboards.context_menu(ctx_name, project.name, msg_count, show_back=True, back_to="menu:context")
@@ -563,7 +563,7 @@ class MenuHandlers:
         user_id = callback.from_user.id
 
         if not self.project_service or not self.context_service:
-            await callback.answer("Сервисы не инициализированы")
+            await callback.answer("Services are not initialized")
             return
 
         from domain.value_objects.user_id import UserId
@@ -572,7 +572,7 @@ class MenuHandlers:
         project = await self.project_service.get_current(uid)
         if not project:
             await callback.message.edit_text(
-                "❌ Нет активного проекта",
+                "❌ No active project",
                 reply_markup=Keyboards.menu_back_only("menu:context"),
                 parse_mode="HTML"
             )
@@ -582,7 +582,7 @@ class MenuHandlers:
         context = await self.context_service.get_current(project.id)
         if not context:
             await callback.message.edit_text(
-                "❌ Нет активного контекста",
+                "❌ No active context",
                 reply_markup=Keyboards.menu_back_only("menu:context"),
                 parse_mode="HTML"
             )
@@ -592,7 +592,7 @@ class MenuHandlers:
         variables = await self.context_service.get_variables(context.id)
 
         if variables:
-            lines = [f"📋 <b>Переменные контекста</b>\n"]
+            lines = [f"📋 <b>Context Variables</b>\n"]
             lines.append(f"📂 {project.name} / {context.name}\n")
             for name in sorted(variables.keys()):
                 var = variables[name]
@@ -603,10 +603,10 @@ class MenuHandlers:
             text = "\n".join(lines)
         else:
             text = (
-                f"📋 <b>Переменные контекста</b>\n\n"
+                f"📋 <b>Context Variables</b>\n\n"
                 f"📂 {project.name} / {context.name}\n\n"
-                f"Переменных пока нет.\n"
-                f"Нажмите ➕ Добавить для создания."
+                f"No variables yet.\n"
+                f"Click ➕ Add to create."
             )
 
         keyboard = Keyboards.variables_menu(variables, project.name, context.name, show_back=True, back_to="menu:context")
@@ -622,12 +622,12 @@ class MenuHandlers:
             self.message_handlers.clear_session_cache(user_id)
 
         await callback.message.edit_text(
-            "🧹 <b>История очищена!</b>\n\n"
-            "Следующее сообщение начнёт новый диалог.",
+            "🧹 <b>History cleared!</b>\n\n"
+            "The next message will start a new conversation.",
             reply_markup=Keyboards.menu_back_only("menu:context"),
             parse_mode="HTML"
         )
-        await callback.answer("История очищена")
+        await callback.answer("History cleared")
 
     # ============== Settings Section ==============
 
@@ -665,7 +665,7 @@ class MenuHandlers:
 
                 if not self.account_service:
                     await callback.answer(
-                        "❌ Сервис аккаунтов не инициализирован",
+                        "❌ The account service is not initialized",
                         show_alert=True
                     )
                     return
@@ -675,9 +675,9 @@ class MenuHandlers:
 
                 mode_name = "z.ai API" if settings.auth_mode.value == "zai_api" else "Claude Account"
                 text = (
-                    f"🔧 <b>Настройки аккаунта</b>\n\n"
-                    f"Текущий режим: <b>{mode_name}</b>\n\n"
-                    f"Выберите режим авторизации:"
+                    f"🔧 <b>Account Settings</b>\n\n"
+                    f"Current mode: <b>{mode_name}</b>\n\n"
+                    f"Select authorization mode:"
                 )
 
                 await callback.message.edit_text(
@@ -698,7 +698,7 @@ class MenuHandlers:
             except Exception as e:
                 logger.error(f"[{user_id}] Error opening account menu: {e}", exc_info=True)
                 await callback.answer(
-                    f"❌ Ошибка: {str(e)}",
+                    f"❌ Error: {str(e)}",
                     show_alert=True
                 )
 
@@ -749,10 +749,10 @@ class MenuHandlers:
                 if creds_info.exists:
                     sub = creds_info.subscription_type or "unknown"
                     text = (
-                        f"✅ <b>Уже авторизованы!</b>\n\n"
-                        f"Подписка: {sub}\n"
+                        f"✅ <b>Already authorized!</b>\n\n"
+                        f"Subscription: {sub}\n"
                         f"Rate limit: {creds_info.rate_limit_tier or 'default'}\n\n"
-                        f"Используйте Аккаунт для переключения режима."
+                        f"Use Account to switch mode."
                     )
                     await callback.message.edit_text(
                         text,
@@ -761,9 +761,9 @@ class MenuHandlers:
                     )
                 else:
                     text = (
-                        "🔐 <b>Авторизация Claude Account</b>\n\n"
-                        "Для использования Claude Account нужна авторизация.\n\n"
-                        "<b>Выберите способ:</b>"
+                        "🔐 <b>Authorization Claude Account</b>\n\n"
+                        "To use Claude Account authorization required.\n\n"
+                        "<b>Choose a method:</b>"
                     )
                     await callback.message.edit_text(
                         text,
@@ -794,7 +794,7 @@ class MenuHandlers:
             current_lang = await self.account_service.get_user_language(user_id)
 
         text = (
-            "🌐 <b>Select language / Выберите язык / 选择语言</b>\n\n"
+            "🌐 <b>Select language / Select language / 选择语言</b>\n\n"
             f"Current: {current_lang.upper()}"
         )
 
@@ -817,15 +817,15 @@ class MenuHandlers:
             variables = await self.context_service.get_global_variables(uid)
 
             text = (
-                "🌍 <b>Глобальные переменные</b>\n\n"
-                "Эти переменные наследуются <b>всеми проектами</b> и контекстами.\n"
-                "Переменные контекста могут переопределять глобальные.\n\n"
+                "🌍 <b>Global Variables</b>\n\n"
+                "These variables are inherited <b>all projects</b> and contexts.\n"
+                "Context variables can override global ones.\n\n"
             )
 
             if variables:
-                text += f"📋 <i>Всего переменных: {len(variables)}</i>"
+                text += f"📋 <i>Total variables: {len(variables)}</i>"
             else:
-                text += "<i>Нет глобальных переменных</i>"
+                text += "<i>No global variables</i>"
 
             await callback.message.edit_text(
                 text,
@@ -840,7 +840,7 @@ class MenuHandlers:
 
         except Exception as e:
             logger.error(f"Error showing global variables: {e}", exc_info=True)
-            await callback.answer(f"❌ Ошибка: {str(e)}", show_alert=True)
+            await callback.answer(f"❌ Error: {str(e)}", show_alert=True)
 
     async def _show_usage_limits(self, callback: CallbackQuery):
         """Show Claude.ai subscription usage limits"""
@@ -854,8 +854,8 @@ class MenuHandlers:
             text = service.format_usage_for_telegram(limits)
 
             buttons = [
-                [InlineKeyboardButton(text="🔄 Обновить", callback_data="menu:settings:usage")],
-                [InlineKeyboardButton(text="🔙 Назад", callback_data="menu:settings")]
+                [InlineKeyboardButton(text="🔄 Update", callback_data="menu:settings:usage")],
+                [InlineKeyboardButton(text="🔙 Back", callback_data="menu:settings")]
             ]
             keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
 
@@ -864,7 +864,7 @@ class MenuHandlers:
         except Exception as e:
             logger.error(f"Error showing usage limits: {e}", exc_info=True)
             await callback.message.edit_text(
-                f"❌ Ошибка: {str(e)}",
+                f"❌ Error: {str(e)}",
                 reply_markup=Keyboards.menu_back_only("menu:settings"),
                 parse_mode="HTML"
             )
@@ -877,7 +877,7 @@ class MenuHandlers:
         """Handle plugins menu"""
         if not self.sdk_service:
             await callback.message.edit_text(
-                "⚠️ SDK сервис не доступен",
+                "⚠️ SDK service not available",
                 reply_markup=Keyboards.menu_back_only("menu:main"),
                 parse_mode="HTML"
             )
@@ -888,11 +888,11 @@ class MenuHandlers:
 
         if not plugins:
             text = (
-                "🔌 <b>Плагины Claude Code</b>\n\n"
-                "Нет активных плагинов."
+                "🔌 <b>Plugins Claude Code</b>\n\n"
+                "No active plugins."
             )
         else:
-            text = "🔌 <b>Плагины Claude Code</b>\n\n"
+            text = "🔌 <b>Plugins Claude Code</b>\n\n"
             for p in plugins:
                 name = p.get("name", "unknown")
                 desc = p.get("description", "")
@@ -901,7 +901,7 @@ class MenuHandlers:
                 text += f"{status} <b>{name}</b>\n"
                 if desc:
                     text += f"   <i>{desc}</i>\n"
-            text += f"\n<i>Всего: {len(plugins)} плагинов</i>"
+            text += f"\n<i>Total: {len(plugins)} plugins</i>"
 
         await callback.message.edit_text(
             text,
@@ -961,26 +961,26 @@ class MenuHandlers:
         cli_emoji = "🟢" if installed else "🔴"
 
         # Check SDK
-        sdk_status = "❌ Недоступен"
+        sdk_status = "❌ Not available"
         sdk_running = False
         if self.sdk_service:
             sdk_ok, sdk_msg = await self.sdk_service.check_sdk_available()
-            sdk_status = "🟢 Доступен" if sdk_ok else f"🔴 {sdk_msg}"
+            sdk_status = "🟢 Available" if sdk_ok else f"🔴 {sdk_msg}"
             sdk_running = self.sdk_service.is_task_running(user_id)
 
         cli_running = self.claude_proxy.is_task_running(user_id)
         is_running = sdk_running or cli_running
         working_dir = self._get_working_dir(user_id)
 
-        task_status = "🔄 Работает" if is_running else "⏸️ Ожидание"
-        backend = "SDK" if sdk_running else ("CLI" if cli_running else "Ожидание")
+        task_status = "🔄 Works" if is_running else "⏸️ Expectation"
+        backend = "SDK" if sdk_running else ("CLI" if cli_running else "Expectation")
 
         text = (
-            f"📊 <b>Статус Claude Code</b>\n\n"
+            f"📊 <b>Status Claude Code</b>\n\n"
             f"<b>CLI:</b> {cli_emoji} {version_info}\n"
             f"<b>SDK:</b> {sdk_status}\n"
-            f"<b>Задача:</b> {task_status} ({backend})\n"
-            f"<b>Папка:</b> <code>{working_dir}</code>"
+            f"<b>Task:</b> {task_status} ({backend})\n"
+            f"<b>Folder:</b> <code>{working_dir}</code>"
         )
 
         await callback.message.edit_text(
@@ -996,18 +996,18 @@ class MenuHandlers:
         metrics = info["metrics"]
 
         lines = [
-            "💻 <b>Метрики системы</b>",
+            "💻 <b>System metrics</b>",
             "",
             f"💻 <b>CPU:</b> {metrics['cpu_percent']:.1f}%",
-            f"🧠 <b>Память:</b> {metrics['memory_percent']:.1f}% ({metrics['memory_used_gb']}GB / {metrics['memory_total_gb']}GB)",
-            f"💾 <b>Диск:</b> {metrics['disk_percent']:.1f}% ({metrics['disk_used_gb']}GB / {metrics['disk_total_gb']}GB)",
+            f"🧠 <b>Memory:</b> {metrics['memory_percent']:.1f}% ({metrics['memory_used_gb']}GB / {metrics['memory_total_gb']}GB)",
+            f"💾 <b>Disk:</b> {metrics['disk_percent']:.1f}% ({metrics['disk_used_gb']}GB / {metrics['disk_total_gb']}GB)",
         ]
 
         if metrics.get('load_average', [0])[0] > 0:
-            lines.append(f"📈 <b>Нагрузка:</b> {metrics['load_average'][0]:.2f}")
+            lines.append(f"📈 <b>Load:</b> {metrics['load_average'][0]:.2f}")
 
         if info.get("alerts"):
-            lines.append("\n⚠️ <b>Предупреждения:</b>")
+            lines.append("\n⚠️ <b>Warnings:</b>")
             lines.extend(info["alerts"])
 
         await callback.message.edit_text(
@@ -1028,9 +1028,9 @@ class MenuHandlers:
 
             if not containers:
                 await callback.message.edit_text(
-                    "🐳 <b>Docker контейнеры</b>\n\n"
-                    "📦 Контейнеры не найдены\n\n"
-                    "Проверьте что Docker запущен на сервере.",
+                    "🐳 <b>Docker containers</b>\n\n"
+                    "📦 No containers found\n\n"
+                    "Check that Docker running on the server.",
                     reply_markup=Keyboards.menu_back_only("menu:system"),
                     parse_mode="HTML"
                 )
@@ -1050,7 +1050,7 @@ class MenuHandlers:
             running = sum(1 for c in containers if c["status"] == "running")
 
             # Format container list
-            lines = [f"🐳 <b>Docker</b> ({running}🟢 / {total}) — стр. {page + 1}/{total_pages}\n"]
+            lines = [f"🐳 <b>Docker</b> ({running}🟢 / {total}) — page. {page + 1}/{total_pages}\n"]
             for container in page_containers:
                 status_emoji = "🟢" if container["status"] == "running" else "🔴"
                 name = container['name'][:22]
@@ -1068,25 +1068,25 @@ class MenuHandlers:
                 if status == "running":
                     buttons.append([
                         InlineKeyboardButton(text=f"⏹ {container['name'][:15]}", callback_data=f"docker:stop:{cid}"),
-                        InlineKeyboardButton(text="📋 Логи", callback_data=f"docker:logs:{cid}"),
+                        InlineKeyboardButton(text="📋 Logs", callback_data=f"docker:logs:{cid}"),
                     ])
                 else:
                     buttons.append([
                         InlineKeyboardButton(text=f"▶️ {container['name'][:15]}", callback_data=f"docker:start:{cid}"),
-                        InlineKeyboardButton(text="🗑 Удалить", callback_data=f"docker:rm:{cid}"),
+                        InlineKeyboardButton(text="🗑 Delete", callback_data=f"docker:rm:{cid}"),
                     ])
 
             # Pagination row
             nav_row = []
             if page > 0:
-                nav_row.append(InlineKeyboardButton(text="◀️ Назад", callback_data=f"menu:system:docker:{page - 1}"))
+                nav_row.append(InlineKeyboardButton(text="◀️ Back", callback_data=f"menu:system:docker:{page - 1}"))
             if page < total_pages - 1:
-                nav_row.append(InlineKeyboardButton(text="Вперёд ▶️", callback_data=f"menu:system:docker:{page + 1}"))
+                nav_row.append(InlineKeyboardButton(text="Forward ▶️", callback_data=f"menu:system:docker:{page + 1}"))
             if nav_row:
                 buttons.append(nav_row)
 
             # Back button
-            buttons.append([InlineKeyboardButton(text="🔙 Назад", callback_data="menu:system")])
+            buttons.append([InlineKeyboardButton(text="🔙 Back", callback_data="menu:system")])
 
             keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
 
@@ -1095,7 +1095,7 @@ class MenuHandlers:
         except Exception as e:
             logger.error(f"Error showing Docker containers: {e}", exc_info=True)
             await callback.message.edit_text(
-                f"🐳 Docker\n\n❌ Ошибка: {str(e)[:300]}",
+                f"🐳 Docker\n\n❌ Error: {str(e)[:300]}",
                 reply_markup=Keyboards.menu_back_only("menu:system"),
                 parse_mode="HTML"
             )
@@ -1104,7 +1104,7 @@ class MenuHandlers:
 
     async def _run_diagnostics(self, callback: CallbackQuery):
         """Run Claude Code diagnostics"""
-        await callback.answer("Запускаю диагностику...")
+        await callback.answer("I run diagnostics...")
 
         try:
             from infrastructure.claude_code.diagnostics import run_diagnostics, format_diagnostics_for_telegram
@@ -1113,7 +1113,7 @@ class MenuHandlers:
 
             # Truncate if too long
             if len(text) > 4000:
-                text = text[:3900] + "\n\n... (обрезано)"
+                text = text[:3900] + "\n\n... (cropped)"
 
             await callback.message.edit_text(
                 text,
@@ -1122,7 +1122,7 @@ class MenuHandlers:
             )
         except Exception as e:
             await callback.message.edit_text(
-                f"❌ Диагностика не удалась: {e}",
+                f"❌ Diagnostics failed: {e}",
                 reply_markup=Keyboards.menu_back_only("menu:system"),
                 parse_mode="HTML"
             )
@@ -1141,16 +1141,16 @@ class MenuHandlers:
             cancelled = await self.claude_proxy.cancel_task(user_id)
 
         if cancelled:
-            text = "🛑 <b>Задача отменена</b>"
+            text = "🛑 <b>Task canceled</b>"
         else:
-            text = "ℹ️ Нет запущенных задач"
+            text = "ℹ️ No running tasks"
 
         await callback.message.edit_text(
             text,
             reply_markup=Keyboards.menu_back_only("menu:system"),
             parse_mode="HTML"
         )
-        await callback.answer("Задача отменена" if cancelled else "Нет задач")
+        await callback.answer("Task canceled" if cancelled else "No tasks")
 
     # ============== Help Section ==============
 
@@ -1174,28 +1174,28 @@ class MenuHandlers:
 
         elif action == "usage":
             text = """
-📖 <b>Как работать с ботом</b>
+📖 <b>How to work with a bot</b>
 
-<b>Основы:</b>
-• Просто напишите задачу текстом
-• Claude Code выполнит её автоматически
-• Вы увидите вывод в реальном времени
+<b>Basics:</b>
+• Just write the task in text
+• Claude Code will do it automatically
+• You will see the output in real time
 
 <b>HITL (Human-in-the-Loop):</b>
-🔐 <b>Разрешения</b> - Claude спросит разрешение на опасные операции
-❓ <b>Вопросы</b> - Claude задаст уточняющие вопросы
-🛑 <b>Отмена</b> - Можно отменить задачу в любой момент
+🔐 <b>Permissions</b> - Claude will ask permission for dangerous operations
+❓ <b>Questions</b> - Claude will ask clarifying questions
+🛑 <b>Cancel</b> - You can cancel a task at any time
 
-<b>Примеры задач:</b>
-• "Создай Python скрипт для парсинга JSON"
-• "Прочитай файл README.md"
-• "Запусти тесты командой pytest"
-• "Исправь баг в файле main.py"
+<b>Sample problems:</b>
+• "Create Python parsing script JSON"
+• "Read the file README.md"
+• "Run the tests with the command pytest"
+• "Fix the bug in the file main.py"
 
-<b>Слэш-команды плагинов:</b>
-• /ralph-loop - непрерывная разработка
-• /commit - создать коммит
-• /code-review - ревью кода
+<b>Plugin slash commands:</b>
+• /ralph-loop - continuous development
+• /commit - create a commit
+• /code-review - code review
 """
             await callback.message.edit_text(
                 text,
@@ -1206,28 +1206,28 @@ class MenuHandlers:
 
         elif action == "plugins":
             text = """
-🔌 <b>О плагинах</b>
+🔌 <b>About plugins</b>
 
-Плагины расширяют возможности Claude Code.
+Plugins expand possibilities Claude Code.
 
-<b>Доступные плагины:</b>
+<b>Available plugins:</b>
 
-<b>ralph-loop</b> - Непрерывная разработка
-• Запуск: /ralph-loop
-• Отмена: /cancel-ralph
+<b>ralph-loop</b> - Continuous Development
+• Launch: /ralph-loop
+• Cancel: /cancel-ralph
 
-<b>commit-commands</b> - Git операции
-• /commit - создать коммит
-• /commit-push-pr - коммит + PR
+<b>commit-commands</b> - Git operations
+• /commit - create a commit
+• /commit-push-pr - commit + PR
 
-<b>code-review</b> - Ревью кода
-• /code-review - начать ревью
+<b>code-review</b> - Code review
+• /code-review - start review
 
-<b>feature-dev</b> - Разработка фич
-• /feature-dev - guided разработка
+<b>feature-dev</b> - Feature development
+• /feature-dev - guided development
 
-<b>frontend-design</b> - UI разработка
-• /frontend-design - создание интерфейсов
+<b>frontend-design</b> - UI development
+• /frontend-design - creating interfaces
 """
             await callback.message.edit_text(
                 text,
@@ -1238,30 +1238,30 @@ class MenuHandlers:
 
         elif action == "yolo":
             text = """
-⚡ <b>О YOLO режиме</b>
+⚡ <b>ABOUT YOLO mode</b>
 
-YOLO = You Only Live Once (авто-подтверждение)
+YOLO = You Only Live Once (auto-confirmation)
 
-<b>Когда включён:</b>
-✅ Все операции выполняются автоматически
-✅ Не нужно подтверждать каждое действие
-✅ Быстрее выполняются задачи
+<b>When enabled:</b>
+✅ All operations are performed automatically
+✅ No need to confirm every action
+✅ Tasks are completed faster
 
-<b>Риски:</b>
-⚠️ Опасные команды выполняются без подтверждения
-⚠️ Нет возможности отменить операцию заранее
-⚠️ Файлы могут быть изменены/удалены
+<b>Risks:</b>
+⚠️ Dangerous commands are executed without confirmation
+⚠️ There is no option to cancel the operation in advance
+⚠️ Files are subject to change/deleted
 
-<b>Рекомендация:</b>
-Используйте YOLO только для безопасных задач:
-• Чтение файлов
-• Анализ кода
-• Генерация без записи
+<b>Recommendation:</b>
+Use YOLO only for safe tasks:
+• Reading files
+• Code Analysis
+• Generation without recording
 
-Отключайте для:
-• Записи/удаления файлов
-• Git операций
-• Системных команд
+Disable for:
+• Posts/deleting files
+• Git operations
+• System commands
 """
             await callback.message.edit_text(
                 text,

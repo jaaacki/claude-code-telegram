@@ -58,16 +58,16 @@ TOOL_ICONS = {
 
 # Tool action labels (executing, completed)
 TOOL_ACTIONS = {
-    "bash": ("Выполняю", "Выполнено"),
-    "write": ("Записываю", "Записано"),
-    "edit": ("Редактирую", "Отредактировано"),
-    "read": ("Читаю", "Прочитано"),
-    "glob": ("Ищу файлы", "Найдено"),
-    "grep": ("Ищу в коде", "Найдено"),
-    "webfetch": ("Загружаю", "Загружено"),
-    "websearch": ("Ищу в сети", "Найдено"),
-    "task": ("Запускаю агента", "Агент завершил"),
-    "notebookedit": ("Редактирую notebook", "Notebook отредактирован"),
+    "bash": ("In progress", "Completed"),
+    "write": ("Recording", "Recorded"),
+    "edit": ("Editing", "Edited"),
+    "read": ("Reading", "Read"),
+    "glob": ("Looking for files", "Found"),
+    "grep": ("Looking in the code", "Found"),
+    "webfetch": ("Loading", "Loaded"),
+    "websearch": ("Searching on the web", "Found"),
+    "task": ("Starting the agent", "Agent has completed"),
+    "notebookedit": ("Editing notebook", "Notebook edited"),
 }
 
 
@@ -94,9 +94,9 @@ class ToolState:
             icon = "❌"
 
         # Get action label
-        actions = TOOL_ACTIONS.get(self.name, ("Обработка", "Готово"))
+        actions = TOOL_ACTIONS.get(self.name, ("Processing", "Done"))
         if self.status == ToolStatus.PENDING:
-            label = f"Ожидаю разрешение: `{self.name}`"
+            label = f"I'm waiting for permission: `{self.name}`"
         elif self.status == ToolStatus.EXECUTING:
             label = actions[0]
         else:  # COMPLETED or ERROR
@@ -179,10 +179,10 @@ class StreamingUIState:
     status_line: str = ""
 
     # Completion info (cost, tokens) - shown at the very bottom
-    completion_info: str = ""  # e.g., "$0.0978 | ~5K токенов"
+    completion_info: str = ""  # e.g., "$0.0978 | ~5K tokens"
 
     # Completion status - shown after completion_info
-    completion_status: str = ""  # e.g., "✅ Готово"
+    completion_status: str = ""  # e.g., "✅ Ready"
 
     # Whether the message is finalized
     finalized: bool = False
@@ -243,7 +243,7 @@ class StreamingUIState:
         3. Elements in order of addition (CONTENT and TOOL interleaved)
         4. Current content buffer (not yet flushed)
         5. Completion info (cost, tokens) - AT THE BOTTOM
-        6. Completion status (✅ Готово) - AT THE VERY BOTTOM
+        6. Completion status (✅ Ready) - AT THE VERY BOTTOM
         """
         parts = []
 
@@ -292,7 +292,7 @@ class StreamingUIState:
         if self.completion_info:
             parts.append(self.completion_info)
 
-        # 6. Completion status (✅ Готово) - at the very bottom
+        # 6. Completion status (✅ Ready) - at the very bottom
         if self.completion_status:
             parts.append(self.completion_status)
 
@@ -502,7 +502,7 @@ class StreamingUIState:
         self.completion_info = info
 
     def set_completion_status(self, status: str) -> None:
-        """Set completion status (✅ Готово) - shown at the very bottom"""
+        """Set completion status (✅ Ready) - shown at the very bottom"""
         self.completion_status = status
 
     def reset(self) -> None:

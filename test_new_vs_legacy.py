@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """
-Сравнение legacy vs refactored кода.
-Проверяем что оба варианта имеют одинаковые методы и поведение.
+Comparison legacy vs refactored code.
+We check that both options have the same methods and behavior.
 """
 import sys
 import asyncio
 import inspect
 
 def test_methods_match():
-    """Проверить что все PUBLIC методы legacy есть в facade"""
+    """Check that everything PUBLIC methods legacy is in facade"""
     print("\n[1/5] Testing methods match...")
 
     from presentation.handlers.messages import MessageHandlers as Legacy
@@ -34,7 +34,7 @@ def test_methods_match():
     return True
 
 def test_parameters_match():
-    """Проверить что __init__ принимает те же параметры"""
+    """Check what __init__ accepts the same parameters"""
     print("\n[2/5] Testing __init__ parameters match...")
 
     from presentation.handlers.messages import MessageHandlers as Legacy
@@ -60,7 +60,7 @@ def test_parameters_match():
     return True
 
 def test_method_signatures_match():
-    """Проверить что сигнатуры методов совпадают"""
+    """Check that method signatures match"""
     print("\n[3/5] Testing method signatures match...")
 
     from presentation.handlers.messages import MessageHandlers as Legacy
@@ -112,7 +112,7 @@ def test_method_signatures_match():
     return True
 
 def test_mock_creation():
-    """Проверить что можно создать handler без ошибок"""
+    """Check what can be created handler no errors"""
     print("\n[4/5] Testing mock handler creation...")
 
     try:
@@ -144,7 +144,7 @@ def test_mock_creation():
         return False
 
 async def test_mock_message_handling():
-    """Проверить что можно обработать mock message"""
+    """Check what can be processed mock message"""
     print("\n[5/5] Testing mock message handling...")
 
     try:

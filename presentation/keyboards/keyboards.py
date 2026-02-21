@@ -141,7 +141,7 @@ class Keyboards:
     def language_select(current_lang: str = None) -> InlineKeyboardMarkup:
         """Language selection keyboard for first launch or settings"""
         languages = [
-            ("ru", "🇷🇺 Русский"),
+            ("ru", "🇷🇺 Russian"),
             ("en", "🇬🇧 English"),
             ("zh", "🇨🇳 中文"),
         ]
@@ -157,7 +157,7 @@ class Keyboards:
         # Add back button only if we have current language (i.e., not first launch)
         if current_lang:
             buttons.append([
-                InlineKeyboardButton(text="◀️ Назад / Back", callback_data="menu:settings")
+                InlineKeyboardButton(text="◀️ Back / Back", callback_data="menu:settings")
             ])
 
         return InlineKeyboardMarkup(inline_keyboard=buttons)
@@ -400,7 +400,7 @@ class Keyboards:
     def menu_back_only(back_to: str = "menu:main") -> InlineKeyboardMarkup:
         """Simple back button keyboard"""
         return InlineKeyboardMarkup(inline_keyboard=[
-            [InlineKeyboardButton(text="◀️ Назад", callback_data=back_to)]
+            [InlineKeyboardButton(text="◀️ Back", callback_data=back_to)]
         ])
 
     # ============== Legacy Reply Keyboard (kept for compatibility) ==============
@@ -409,14 +409,14 @@ class Keyboards:
     def main_menu() -> ReplyKeyboardMarkup:
         """Legacy reply keyboard - kept for compatibility"""
         buttons = [
-            [KeyboardButton(text="📊 Метрики"), KeyboardButton(text="🐳 Docker")],
-            [KeyboardButton(text="📂 Проект"), KeyboardButton(text="⚡ YOLO")],
-            [KeyboardButton(text="🗑️ Очистить"), KeyboardButton(text="ℹ️ Справка")]
+            [KeyboardButton(text="📊 Metrics"), KeyboardButton(text="🐳 Docker")],
+            [KeyboardButton(text="📂 Project"), KeyboardButton(text="⚡ YOLO")],
+            [KeyboardButton(text="🗑️ Clear"), KeyboardButton(text="ℹ️ Reference")]
         ]
         return ReplyKeyboardMarkup(
             keyboard=buttons,
             resize_keyboard=True,
-            input_field_placeholder="Напишите задачу..."
+            input_field_placeholder="Write a task..."
         )
 
     @staticmethod
@@ -425,8 +425,8 @@ class Keyboards:
         warning = "⚠️ " if is_dangerous else ""
         buttons = [
             [
-                InlineKeyboardButton(text=f"{warning}✅ Выполнить", callback_data=f"exec:{command_id}"),
-                InlineKeyboardButton(text="❌ Отмена", callback_data=f"cancel:{command_id}")
+                InlineKeyboardButton(text=f"{warning}✅ Execute", callback_data=f"exec:{command_id}"),
+                InlineKeyboardButton(text="❌ Cancel", callback_data=f"cancel:{command_id}")
             ]
         ]
         return InlineKeyboardMarkup(inline_keyboard=buttons)
@@ -451,23 +451,23 @@ class Keyboards:
 
         row = []
         if status == "running":
-            row.append(InlineKeyboardButton(text="⏸️ Стоп", callback_data=f"docker:stop:{container_id}"))
-            row.append(InlineKeyboardButton(text="🔄 Рестарт", callback_data=f"docker:restart:{container_id}"))
+            row.append(InlineKeyboardButton(text="⏸️ Stop", callback_data=f"docker:stop:{container_id}"))
+            row.append(InlineKeyboardButton(text="🔄 Restart", callback_data=f"docker:restart:{container_id}"))
         else:
-            row.append(InlineKeyboardButton(text="▶️ Старт", callback_data=f"docker:start:{container_id}"))
+            row.append(InlineKeyboardButton(text="▶️ Start", callback_data=f"docker:start:{container_id}"))
 
         if row:
             buttons.append(row)
 
         buttons.append([
-            InlineKeyboardButton(text="📋 Логи", callback_data=f"docker:logs:{container_id}"),
-            InlineKeyboardButton(text="🗑️ Удалить", callback_data=f"docker:rm:{container_id}")
+            InlineKeyboardButton(text="📋 Logs", callback_data=f"docker:logs:{container_id}"),
+            InlineKeyboardButton(text="🗑️ Delete", callback_data=f"docker:rm:{container_id}")
         ])
 
         # Back button
         if show_back:
             buttons.append([
-                InlineKeyboardButton(text="🔙 К списку", callback_data=back_to)
+                InlineKeyboardButton(text="🔙 To the list", callback_data=back_to)
             ])
 
         return InlineKeyboardMarkup(inline_keyboard=buttons)
@@ -477,11 +477,11 @@ class Keyboards:
         """Keyboard for session actions"""
         buttons = [
             [
-                InlineKeyboardButton(text="📤 Экспорт MD", callback_data=f"session:export:md:{session_id}"),
-                InlineKeyboardButton(text="📤 Экспорт JSON", callback_data=f"session:export:json:{session_id}")
+                InlineKeyboardButton(text="📤 Export MD", callback_data=f"session:export:md:{session_id}"),
+                InlineKeyboardButton(text="📤 Export JSON", callback_data=f"session:export:json:{session_id}")
             ],
             [
-                InlineKeyboardButton(text="🗑️ Удалить", callback_data=f"session:delete:{session_id}")
+                InlineKeyboardButton(text="🗑️ Delete", callback_data=f"session:delete:{session_id}")
             ]
         ]
         return InlineKeyboardMarkup(inline_keyboard=buttons)
@@ -491,11 +491,11 @@ class Keyboards:
         """Keyboard for user management"""
         buttons = [
             [
-                InlineKeyboardButton(text="✅ Активировать", callback_data=f"user:activate:{user_id}"),
-                InlineKeyboardButton(text="❌ Деактивировать", callback_data=f"user:deactivate:{user_id}")
+                InlineKeyboardButton(text="✅ Activate", callback_data=f"user:activate:{user_id}"),
+                InlineKeyboardButton(text="❌ Deactivate", callback_data=f"user:deactivate:{user_id}")
             ],
             [
-                InlineKeyboardButton(text="👤 Назначить роль", callback_data=f"user:role:{user_id}")
+                InlineKeyboardButton(text="👤 Assign role", callback_data=f"user:role:{user_id}")
             ]
         ]
         return InlineKeyboardMarkup(inline_keyboard=buttons)
@@ -505,12 +505,12 @@ class Keyboards:
         """Keyboard for role selection"""
         buttons = [
             [
-                InlineKeyboardButton(text="👑 Админ", callback_data=f"role:set:{user_id}:admin"),
+                InlineKeyboardButton(text="👑 Admin", callback_data=f"role:set:{user_id}:admin"),
                 InlineKeyboardButton(text="🔧 DevOps", callback_data=f"role:set:{user_id}:devops")
             ],
             [
-                InlineKeyboardButton(text="👤 Пользователь", callback_data=f"role:set:{user_id}:user"),
-                InlineKeyboardButton(text="👁️ Только чтение", callback_data=f"role:set:{user_id}:readonly")
+                InlineKeyboardButton(text="👤 User", callback_data=f"role:set:{user_id}:user"),
+                InlineKeyboardButton(text="👁️ Read only", callback_data=f"role:set:{user_id}:readonly")
             ]
         ]
         return InlineKeyboardMarkup(inline_keyboard=buttons)
@@ -529,19 +529,19 @@ class Keyboards:
         """
         buttons = [
             [
-                InlineKeyboardButton(text="🔄 Обновить", callback_data="metrics:refresh"),
-                InlineKeyboardButton(text="📈 Топ процессов", callback_data="metrics:top")
+                InlineKeyboardButton(text="🔄 Update", callback_data="metrics:refresh"),
+                InlineKeyboardButton(text="📈 Top processes", callback_data="metrics:top")
             ],
             [
-                InlineKeyboardButton(text="🐳 Контейнеры", callback_data="docker:list"),
-                InlineKeyboardButton(text="📝 История", callback_data="commands:history")
+                InlineKeyboardButton(text="🐳 Containers", callback_data="docker:list"),
+                InlineKeyboardButton(text="📝 Story", callback_data="commands:history")
             ]
         ]
 
         # Back button
         if show_back:
             buttons.append([
-                InlineKeyboardButton(text="🔙 Назад", callback_data=back_to)
+                InlineKeyboardButton(text="🔙 Back", callback_data=back_to)
             ])
 
         return InlineKeyboardMarkup(inline_keyboard=buttons)
@@ -550,7 +550,7 @@ class Keyboards:
     def back(button: str = "main") -> InlineKeyboardMarkup:
         """Back button"""
         return InlineKeyboardMarkup(inline_keyboard=[
-            [InlineKeyboardButton(text="🔙 Назад", callback_data=f"back:{button}")]
+            [InlineKeyboardButton(text="🔙 Back", callback_data=f"back:{button}")]
         ])
 
     @staticmethod
@@ -595,11 +595,11 @@ class Keyboards:
 
         # Refresh and back buttons
         action_buttons = [
-            InlineKeyboardButton(text="🔄 Обновить", callback_data="docker:list")
+            InlineKeyboardButton(text="🔄 Update", callback_data="docker:list")
         ]
         if show_back:
             action_buttons.append(
-                InlineKeyboardButton(text="🔙 Назад", callback_data=back_to)
+                InlineKeyboardButton(text="🔙 Back", callback_data=back_to)
             )
         buttons.append(action_buttons)
 
@@ -615,17 +615,17 @@ class Keyboards:
         buttons = [
             [
                 InlineKeyboardButton(
-                    text=f"{warning}✅ Разрешить",
+                    text=f"{warning}✅ Allow",
                     callback_data=f"claude:approve:{user_id}:{request_id}"
                 ),
                 InlineKeyboardButton(
-                    text="❌ Отклонить",
+                    text="❌ Reject",
                     callback_data=f"claude:reject:{user_id}:{request_id}"
                 )
             ],
             [
                 InlineKeyboardButton(
-                    text="💬 Уточнить",
+                    text="💬 Specify",
                     callback_data=f"claude:clarify:{user_id}:{request_id}"
                 )
             ]
@@ -656,7 +656,7 @@ class Keyboards:
         # Add "Other" button for custom input
         buttons.append([
             InlineKeyboardButton(
-                text="✏️ Другое (ввести ответ)",
+                text="✏️ Other (enter answer)",
                 callback_data=f"claude:other:{user_id}:{request_id}"
             )
         ])
@@ -667,7 +667,7 @@ class Keyboards:
     def claude_cancel(user_id: int) -> InlineKeyboardMarkup:
         """Keyboard to cancel running Claude Code task"""
         return InlineKeyboardMarkup(inline_keyboard=[
-            [InlineKeyboardButton(text="🛑 Отменить", callback_data=f"claude:cancel:{user_id}")]
+            [InlineKeyboardButton(text="🛑 Cancel", callback_data=f"claude:cancel:{user_id}")]
         ])
 
     @staticmethod
@@ -676,11 +676,11 @@ class Keyboards:
         return InlineKeyboardMarkup(inline_keyboard=[
             [
                 InlineKeyboardButton(
-                    text="▶️ Продолжить",
+                    text="▶️ Continue",
                     callback_data=f"claude:continue:{user_id}:{session_id}"
                 ),
                 InlineKeyboardButton(
-                    text="🔄 Новая сессия",
+                    text="🔄 New session",
                     callback_data=f"claude:new:{user_id}"
                 )
             ]
@@ -783,17 +783,17 @@ class Keyboards:
         action_row = []
         if show_create:
             action_row.append(
-                InlineKeyboardButton(text="➕ Создать", callback_data="project:create")
+                InlineKeyboardButton(text="➕ Create", callback_data="project:create")
             )
         action_row.append(
-            InlineKeyboardButton(text="📂 Обзор", callback_data="project:browse")
+            InlineKeyboardButton(text="📂 Review", callback_data="project:browse")
         )
         buttons.append(action_row)
 
         # Back button
         if show_back:
             buttons.append([
-                InlineKeyboardButton(text="🔙 Назад", callback_data=back_to)
+                InlineKeyboardButton(text="🔙 Back", callback_data=back_to)
             ])
 
         return InlineKeyboardMarkup(inline_keyboard=buttons)
@@ -818,18 +818,18 @@ class Keyboards:
         """
         buttons = [
             [
-                InlineKeyboardButton(text="📋 Список", callback_data="ctx:list"),
-                InlineKeyboardButton(text="✨ Новый", callback_data="ctx:new")
+                InlineKeyboardButton(text="📋 List", callback_data="ctx:list"),
+                InlineKeyboardButton(text="✨ New", callback_data="ctx:new")
             ],
             [
-                InlineKeyboardButton(text="🗑️ Очистить", callback_data="ctx:clear"),
+                InlineKeyboardButton(text="🗑️ Clear", callback_data="ctx:clear"),
             ]
         ]
 
         # Add back button
         if show_back:
             buttons.append([
-                InlineKeyboardButton(text="🔙 Назад", callback_data=back_to)
+                InlineKeyboardButton(text="🔙 Back", callback_data=back_to)
             ])
 
         return InlineKeyboardMarkup(inline_keyboard=buttons)
@@ -839,8 +839,8 @@ class Keyboards:
         """Confirmation keyboard for context clearing"""
         return InlineKeyboardMarkup(inline_keyboard=[
             [
-                InlineKeyboardButton(text="✅ Да, очистить", callback_data="ctx:clear:confirm"),
-                InlineKeyboardButton(text="⬅️ Отмена", callback_data="ctx:menu")
+                InlineKeyboardButton(text="✅ Yes, clean", callback_data="ctx:clear:confirm"),
+                InlineKeyboardButton(text="⬅️ Cancel", callback_data="ctx:menu")
             ]
         ])
 
@@ -876,8 +876,8 @@ class Keyboards:
 
         # Action buttons at bottom
         buttons.append([
-            InlineKeyboardButton(text="✨ Новый", callback_data="ctx:new"),
-            InlineKeyboardButton(text="⬅️ Назад", callback_data="ctx:menu")
+            InlineKeyboardButton(text="✨ New", callback_data="ctx:new"),
+            InlineKeyboardButton(text="⬅️ Back", callback_data="ctx:menu")
         ])
 
         return InlineKeyboardMarkup(inline_keyboard=buttons)
@@ -913,12 +913,12 @@ class Keyboards:
         if current_path != "/root/projects":
             parent = os.path.dirname(current_path)
             nav_row.append(
-                InlineKeyboardButton(text="⬆️ Наверх", callback_data=f"project:browse:{parent}")
+                InlineKeyboardButton(text="⬆️ Top", callback_data=f"project:browse:{parent}")
             )
 
         # Refresh button
         nav_row.append(
-            InlineKeyboardButton(text="🔄 Обновить", callback_data="project:browse")
+            InlineKeyboardButton(text="🔄 Update", callback_data="project:browse")
         )
 
         buttons.append(nav_row)
@@ -926,12 +926,12 @@ class Keyboards:
         # Create folder button (only at root level)
         if current_path == "/root/projects":
             buttons.append([
-                InlineKeyboardButton(text="📁 Создать папку", callback_data="project:mkdir")
+                InlineKeyboardButton(text="📁 Create a folder", callback_data="project:mkdir")
             ])
 
         # Back to menu button
         buttons.append([
-            InlineKeyboardButton(text="◀️ Назад", callback_data="menu:projects")
+            InlineKeyboardButton(text="◀️ Back", callback_data="menu:projects")
         ])
 
         return InlineKeyboardMarkup(inline_keyboard=buttons)
@@ -942,11 +942,11 @@ class Keyboards:
         return InlineKeyboardMarkup(inline_keyboard=[
             [
                 InlineKeyboardButton(
-                    text="✅ Создать",
+                    text="✅ Create",
                     callback_data=f"project:confirm:{path[:40]}"
                 ),
                 InlineKeyboardButton(
-                    text="❌ Отмена",
+                    text="❌ Cancel",
                     callback_data="project:browse"
                 )
             ]
@@ -965,19 +965,19 @@ class Keyboards:
         buttons = [
             [
                 InlineKeyboardButton(
-                    text="🗑️ Удалить только проект",
+                    text="🗑️ Delete project only",
                     callback_data=f"project:delete_confirm:{project_id}:db"
                 )
             ],
             [
                 InlineKeyboardButton(
-                    text="⚠️ Удалить проект И файлы",
+                    text="⚠️ Delete project AND files",
                     callback_data=f"project:delete_confirm:{project_id}:all"
                 )
             ],
             [
                 InlineKeyboardButton(
-                    text="❌ Отмена",
+                    text="❌ Cancel",
                     callback_data="project:back"
                 )
             ]
@@ -1328,21 +1328,21 @@ class Keyboards:
         action_row = []
         if show_marketplace:
             action_row.append(
-                InlineKeyboardButton(text="🛒 Магазин", callback_data="plugin:marketplace")
+                InlineKeyboardButton(text="🛒 Shop", callback_data="plugin:marketplace")
             )
         action_row.append(
-            InlineKeyboardButton(text="🔄 Обновить", callback_data="plugin:refresh")
+            InlineKeyboardButton(text="🔄 Update", callback_data="plugin:refresh")
         )
         buttons.append(action_row)
 
         # Back or close button
         if show_back:
             buttons.append([
-                InlineKeyboardButton(text="◀️ Назад", callback_data=back_to)
+                InlineKeyboardButton(text="◀️ Back", callback_data=back_to)
             ])
         else:
             buttons.append([
-                InlineKeyboardButton(text="❌ Закрыть", callback_data="plugin:close")
+                InlineKeyboardButton(text="❌ Close", callback_data="plugin:close")
             ])
 
         return InlineKeyboardMarkup(inline_keyboard=buttons)
@@ -1387,7 +1387,7 @@ class Keyboards:
 
         # Back button
         buttons.append([
-            InlineKeyboardButton(text="⬅️ Назад", callback_data="plugin:list")
+            InlineKeyboardButton(text="⬅️ Back", callback_data="plugin:list")
         ])
 
         return InlineKeyboardMarkup(inline_keyboard=buttons)
@@ -1396,16 +1396,16 @@ class Keyboards:
     def plugin_confirm_action(name: str, action: str) -> InlineKeyboardMarkup:
         """Confirmation for plugin enable/disable"""
         if action == "enable":
-            confirm_text = "✅ Да, включить"
+            confirm_text = "✅ Yes, enable"
             callback = f"plugin:enable_confirm:{name[:20]}"
         else:
-            confirm_text = "❌ Да, отключить"
+            confirm_text = "❌ Yes, disable"
             callback = f"plugin:disable_confirm:{name[:20]}"
 
         return InlineKeyboardMarkup(inline_keyboard=[
             [
                 InlineKeyboardButton(text=confirm_text, callback_data=callback),
-                InlineKeyboardButton(text="⬅️ Отмена", callback_data="plugin:list")
+                InlineKeyboardButton(text="⬅️ Cancel", callback_data="plugin:list")
             ]
         ])
 

@@ -57,12 +57,12 @@ class GlobFormatter(ToolResponseFormatter):
 
         files = response.get("filenames", [])
         if not files:
-            return "Файлов не найдено"
+            return "No files found"
 
         file_list = "\n".join(f"  {f}" for f in files[:20])
         if len(files) > 20:
-            file_list += f"\n  ... и ещё {len(files) - 20} файлов"
-        return f"Найдено {len(files)} файлов:\n{file_list}"
+            file_list += f"\n  ... and more {len(files) - 20} files"
+        return f"Found {len(files)} files:\n{file_list}"
 
 
 class ReadFormatter(ToolResponseFormatter):
@@ -83,9 +83,9 @@ class ReadFormatter(ToolResponseFormatter):
         if content:
             truncated = content[:max_length]
             if len(content) > max_length:
-                truncated += "\n... (обрезано)"
+                truncated += "\n... (cropped)"
             return truncated
-        return f"Файл прочитан: {path}"
+        return f"File read: {path}"
 
 
 class GrepFormatter(ToolResponseFormatter):
@@ -101,8 +101,8 @@ class GrepFormatter(ToolResponseFormatter):
 
         matches = response.get("matches", [])
         if not matches:
-            return "Совпадений не найдено"
-        return f"Найдено {len(matches)} совпадений"
+            return "No matches found"
+        return f"Found {len(matches)} matches"
 
 
 class BashFormatter(ToolResponseFormatter):
@@ -135,8 +135,8 @@ class WriteFormatter(ToolResponseFormatter):
         if isinstance(response, dict):
             path = response.get("file_path", response.get("path", ""))
             if path:
-                return f"Файл записан: {path}"
-        return "Файл записан"
+                return f"File recorded: {path}"
+        return "File recorded"
 
 
 class EditFormatter(ToolResponseFormatter):
@@ -150,8 +150,8 @@ class EditFormatter(ToolResponseFormatter):
         if isinstance(response, dict):
             path = response.get("file_path", response.get("path", ""))
             if path:
-                return f"Файл изменён: {path}"
-        return "Файл изменён"
+                return f"File changed: {path}"
+        return "File changed"
 
 
 class DefaultFormatter(ToolResponseFormatter):

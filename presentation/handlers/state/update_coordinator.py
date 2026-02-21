@@ -1,11 +1,11 @@
 """
 Message Update Coordinator
 
-Централизованная точка для ВСЕХ обновлений сообщений Telegram.
-Предотвращает rate limiting путём:
-1. Единой очереди обновлений на сообщение
-2. Строгого интервала 2 секунды между обновлениями
-3. Объединения множественных запросов в один
+Centralized point for ALL message updates Telegram.
+Prevents rate limiting by:
+1. Single queue of updates per message
+2. Strict interval 2 seconds between updates
+3. Combining multiple queries into one
 """
 
 import asyncio
@@ -23,17 +23,17 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class PendingUpdate:
-    """Ожидающее обновление сообщения."""
+    """Pending message update."""
     text: str
     parse_mode: Optional[str] = "HTML"
     reply_markup: Optional[InlineKeyboardMarkup] = None
-    priority: int = 0  # Выше = важнее (final updates имеют высший приоритет)
-    is_final: bool = False  # Финальное обновление - игнорировать последующие
+    priority: int = 0  # Higher = more important (final updates have the highest priority)
+    is_final: bool = False  # Final update - ignore subsequent ones
 
 
 @dataclass
 class MessageState:
-    """Состояние одного сообщения."""
+    """Single message status."""
     message: Message
     last_update_time: float = 0.0
     last_sent_text: str = ""
@@ -44,31 +44,31 @@ class MessageState:
 
 class MessageUpdateCoordinator:
     """
-    Координатор обновлений сообщений Telegram.
+    Message Update Coordinator Telegram.
 
-    ВАЖНО: Все обновления сообщений ДОЛЖНЫ проходить через этот класс!
+    IMPORTANT: All message updates MUST go through this class!
 
-    Гарантии:
-    - Минимум 2 секунды между обновлениями одного сообщения
-    - Множественные запросы объединяются (последний побеждает)
-    - Rate limit обрабатывается gracefully
-    - Финальные обновления имеют приоритет
+    Guarantees:
+    - Minimum 2 seconds between updates of one message
+    - Multiple requests are merged (last one wins)
+    - Rate limit processed gracefully
+    - Final updates take priority
 
-    Использование:
+    Usage:
         coordinator = MessageUpdateCoordinator(bot)
 
-        # Обычное обновление (будет отложено если <2с с прошлого)
-        await coordinator.update(message, "новый текст")
+        # Regular update (will be delayed if <2from from the past)
+        await coordinator.update(message, "new text")
 
-        # Финальное обновление (гарантированно выполнится)
-        await coordinator.update(message, "финал", is_final=True)
+        # Final update (guaranteed to complete)
+        await coordinator.update(message, "final", is_final=True)
     """
 
-    # Строгий минимальный интервал между обновлениями
-    MIN_UPDATE_INTERVAL = 2.0  # секунды
+    # Strict minimum interval between updates
+    MIN_UPDATE_INTERVAL = 2.0  # seconds
 
-    # Максимальное время ожидания rate limit
-    MAX_RATE_LIMIT_WAIT = 10.0  # секунды
+    # Maximum waiting time rate limit
+    MAX_RATE_LIMIT_WAIT = 10.0  # seconds
 
     def __init__(self, bot: Bot):
         self.bot = bot
@@ -76,7 +76,7 @@ class MessageUpdateCoordinator:
         self._global_lock = asyncio.Lock()
 
     def _get_state(self, message: Message) -> MessageState:
-        """Получить или создать состояние сообщения."""
+        """Get or create message state."""
         msg_id = message.message_id
         if msg_id not in self._messages:
             self._messages[msg_id] = MessageState(message=message)
@@ -92,38 +92,38 @@ class MessageUpdateCoordinator:
         priority: int = 0
     ) -> bool:
         """
-        Запланировать обновление сообщения.
+        Schedule message update.
 
         Args:
-            message: Сообщение для обновления
-            text: Новый текст
-            parse_mode: Режим парсинга (HTML, Markdown, None)
-            reply_markup: Клавиатура
-            is_final: Финальное обновление (приоритет, гарантированно выполнится)
-            priority: Приоритет (0=обычный, 1=важный, 2=критический)
+            message: Message for update
+            text: New text
+            parse_mode: Parsing mode (HTML, Markdown, None)
+            reply_markup: Keyboard
+            is_final: Final update (priority, guaranteed to complete)
+            priority: Priority (0=ordinary, 1=important, 2=critical)
 
         Returns:
-            True если обновление запланировано/выполнено
+            True if an update is planned/completed
         """
         state = self._get_state(message)
 
-        # Логируем входящий вызов
+        # Logging an incoming call
         logger.info(
             f"Coordinator.update: msg={message.message_id}, text={len(text)}ch, "
             f"is_final={is_final}, last_sent={len(state.last_sent_text)}ch"
         )
 
-        # Игнорируем обновления для финализированных сообщений
+        # Ignore updates for finalized messages
         if state.is_finalized and not is_final:
             logger.debug(f"Message {message.message_id}: ignoring update, already finalized")
             return False
 
-        # Если текст не изменился - пропускаем
+        # If the text has not changed, skip it
         if text == state.last_sent_text and not is_final:
             logger.debug(f"Message {message.message_id}: text unchanged ({len(text)}ch), skipping")
             return False
 
-        # Создаём pending update
+        # We create pending update
         pending = PendingUpdate(
             text=text,
             parse_mode=parse_mode,
@@ -132,30 +132,30 @@ class MessageUpdateCoordinator:
             is_final=is_final
         )
 
-        # Если есть pending с меньшим приоритетом - заменяем
+        # If there is pending with lower priority - replace
         if state.pending_update is None or pending.priority >= state.pending_update.priority:
             state.pending_update = pending
             logger.debug(f"Message {message.message_id}: pending_update set ({len(text)}ch)")
 
-        # Проверяем можно ли обновить сейчас
+        # Let's check if it's possible to update now
         now = time.time()
         time_since_update = now - state.last_update_time
 
         if time_since_update >= self.MIN_UPDATE_INTERVAL or is_final:
-            # Можно обновить сейчас
+            # You can update now
             logger.info(f"Message {message.message_id}: executing update NOW (elapsed={time_since_update:.1f}s)")
             return await self._execute_update(state)
         else:
-            # Планируем отложенное обновление
+            # We are planning a delayed update
             delay = self.MIN_UPDATE_INTERVAL - time_since_update
             logger.info(f"Message {message.message_id}: scheduling update in {delay:.1f}s")
             await self._schedule_update(state, delay)
             return True
 
     async def _schedule_update(self, state: MessageState, delay: float) -> None:
-        """Запланировать отложенное обновление."""
-        # Если уже есть scheduled task - он выполнит pending_update
-        # pending_update уже был обновлён в update() до этого вызова
+        """Schedule a delayed update."""
+        # If you already have scheduled task - he will do pending_update
+        # pending_update has already been updated in update() before this call
         if state.update_task and not state.update_task.done():
             pending_size = len(state.pending_update.text) if state.pending_update else 0
             logger.debug(
@@ -174,20 +174,20 @@ class MessageUpdateCoordinator:
         logger.info(f"Message {state.message.message_id}: NEW scheduled update in {delay:.1f}s ({pending_size}ch)")
 
     async def _execute_update(self, state: MessageState) -> bool:
-        """Выполнить обновление сообщения."""
+        """Perform message update."""
         pending = state.pending_update
         if not pending:
             logger.debug(f"Message {state.message.message_id}: _execute_update - no pending update")
             return False
 
-        # Очищаем pending до выполнения (чтобы новые запросы создали новый)
+        # Cleaning pending before execution (so that new requests create a new)
         state.pending_update = None
 
-        # Финальное обновление
+        # Final update
         if pending.is_final:
             state.is_finalized = True
 
-        # КРИТИЧЕСКОЕ ЛОГИРОВАНИЕ - момент отправки в Telegram
+        # CRITICAL LOGING - the moment of sending to Telegram
         logger.info(
             f">>> TELEGRAM EDIT: msg={state.message.message_id}, "
             f"text={len(pending.text)}ch, is_final={pending.is_final}"
@@ -211,33 +211,33 @@ class MessageUpdateCoordinator:
                     f"Message {state.message.message_id}: rate limited for {e.retry_after}s, "
                     f"skipping (max wait {self.MAX_RATE_LIMIT_WAIT}s)"
                 )
-                # Для финальных - пытаемся позже
+                # For the final ones, we'll try later
                 if pending.is_final:
                     state.is_finalized = False
                     state.pending_update = pending
                     await self._schedule_update(state, self.MAX_RATE_LIMIT_WAIT)
                 return False
 
-            # Короткий rate limit - ждём и повторяем
+            # Short rate limit - wait and repeat
             logger.info(f"Message {state.message.message_id}: rate limited, waiting {e.retry_after}s")
             await asyncio.sleep(e.retry_after + 0.5)
-            state.pending_update = pending  # Восстанавливаем
+            state.pending_update = pending  # We restore
             return await self._execute_update(state)
 
         except TelegramBadRequest as e:
             if "message is not modified" in str(e).lower():
-                # Контент не изменился - это нормально
+                # The content has not changed - this is normal
                 state.last_update_time = time.time()
                 state.last_sent_text = pending.text
                 return True
             elif "message to edit not found" in str(e).lower():
-                # Сообщение удалено
+                # Post deleted
                 logger.warning(f"Message {state.message.message_id}: deleted, removing from coordinator")
                 self._messages.pop(state.message.message_id, None)
                 return False
             else:
                 logger.error(f"Message {state.message.message_id}: Telegram error: {e}")
-                # Пробуем без форматирования
+                # Trying without formatting
                 try:
                     import re
                     plain_text = re.sub(r'<[^>]+>', '', pending.text)
@@ -264,9 +264,9 @@ class MessageUpdateCoordinator:
         reply_markup: Optional[InlineKeyboardMarkup] = None
     ) -> Optional[Message]:
         """
-        Отправить новое сообщение.
+        Send new message.
 
-        Автоматически регистрирует его в координаторе.
+        Automatically registers it with the coordinator.
         """
         try:
             message = await self.bot.send_message(
@@ -275,7 +275,7 @@ class MessageUpdateCoordinator:
                 parse_mode=parse_mode,
                 reply_markup=reply_markup
             )
-            # Регистрируем в координаторе
+            # Register with the coordinator
             state = self._get_state(message)
             state.last_update_time = time.time()
             state.last_sent_text = text
@@ -291,7 +291,7 @@ class MessageUpdateCoordinator:
 
         except TelegramBadRequest as e:
             logger.error(f"send_new: Telegram error: {e}")
-            # Пробуем без форматирования
+            # Trying without formatting
             try:
                 import re
                 plain_text = re.sub(r'<[^>]+>', '', text)
@@ -314,10 +314,10 @@ class MessageUpdateCoordinator:
 
     def get_time_until_next_update(self, message: Message) -> float:
         """
-        Получить время до следующего возможного обновления.
+        Get time until next possible update.
 
         Returns:
-            Секунды до следующего обновления (0 если можно сейчас)
+            Seconds until next update (0 if possible now)
         """
         state = self._get_state(message)
         elapsed = time.time() - state.last_update_time
@@ -325,12 +325,12 @@ class MessageUpdateCoordinator:
         return remaining
 
     def is_finalized(self, message: Message) -> bool:
-        """Проверить финализировано ли сообщение."""
+        """Check if the message is finalized."""
         state = self._get_state(message)
         return state.is_finalized
 
     def cleanup(self, message: Message) -> None:
-        """Очистить состояние сообщения."""
+        """Clear message status."""
         msg_id = message.message_id
         state = self._messages.pop(msg_id, None)
         if state and state.update_task:
@@ -338,7 +338,7 @@ class MessageUpdateCoordinator:
         logger.debug(f"Message {msg_id}: cleaned up")
 
     def cleanup_chat(self, chat_id: int) -> None:
-        """Очистить все сообщения чата."""
+        """Clear all chat messages."""
         to_remove = [
             msg_id for msg_id, state in self._messages.items()
             if state.message.chat.id == chat_id
@@ -350,17 +350,17 @@ class MessageUpdateCoordinator:
         logger.debug(f"Chat {chat_id}: cleaned up {len(to_remove)} messages")
 
 
-# Глобальный экземпляр координатора (инициализируется в main.py)
+# Global coordinator instance (initialized in main.py)
 _coordinator: Optional[MessageUpdateCoordinator] = None
 
 
 def get_coordinator() -> Optional[MessageUpdateCoordinator]:
-    """Получить глобальный координатор."""
+    """Get a global coordinator."""
     return _coordinator
 
 
 def init_coordinator(bot: Bot) -> MessageUpdateCoordinator:
-    """Инициализировать глобальный координатор."""
+    """Initialize global coordinator."""
     global _coordinator
     _coordinator = MessageUpdateCoordinator(bot)
     logger.info("MessageUpdateCoordinator initialized")

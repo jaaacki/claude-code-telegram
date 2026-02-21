@@ -193,18 +193,18 @@ class OAuthLoginSession:
             if os.path.exists(CREDENTIALS_PATH):
                 self.status = "completed"
                 logger.info(f"[{self.user_id}] OAuth login completed, credentials saved")
-                return True, "Авторизация успешна!"
+                return True, "Authorization successful!"
             else:
                 # Check output for errors
                 output = "\n".join(self._output_lines[-5:])
                 self.status = "failed"
                 logger.warning(f"[{self.user_id}] OAuth login failed, no credentials")
-                return False, f"Credentials не сохранены. Вывод:\n{output[:200]}"
+                return False, f"Credentials were not saved. Output:\n{output[:200]}"
 
         except Exception as e:
             logger.error(f"[{self.user_id}] Error submitting OAuth code: {e}")
             self.status = "failed"
-            return False, f"Ошибка: {e}"
+            return False, f"Error: {e}"
 
     async def cancel(self):
         """Cancel the login process"""
@@ -470,7 +470,7 @@ class AccountHandlers:
             await self._handle_zai_delete_key(callback, state)
 
         else:
-            await callback.answer(f"Неизвестное действие: {action}")
+            await callback.answer(f"Unknown action: {action}")
 
     async def _handle_mode_selection(
         self,
@@ -484,7 +484,7 @@ class AccountHandlers:
         try:
             mode = AuthMode(mode_str)
         except ValueError:
-            await callback.answer(f"Неизвестный режим: {mode_str}")
+            await callback.answer(f"Unknown mode: {mode_str}")
             return
 
         settings = await self.account_service.get_settings(user_id)
@@ -500,7 +500,7 @@ class AccountHandlers:
                 await self._show_zai_submenu(callback, state)
                 return
             else:
-                await callback.answer("Этот режим уже выбран")
+                await callback.answer("This mode is already selected")
                 return
 
         # Get user language
@@ -1027,7 +1027,7 @@ class AccountHandlers:
         from shared.i18n import get_translator
         t = get_translator(lang)
 
-        if message.text and message.text.lower() in ("отмена", "cancel", "/cancel"):
+        if message.text and message.text.lower() in ("cancellation", "cancel", "/cancel"):
             await state.clear()
             await message.answer(t("account.upload_cancelled_use"))
         else:
@@ -1173,7 +1173,7 @@ class AccountHandlers:
         code = message.text.strip()
 
         # Check for cancel commands
-        if code.lower() in ("отмена", "cancel", "/cancel"):
+        if code.lower() in ("cancellation", "cancel", "/cancel"):
             await self._cancel_oauth_login_message(message, state)
             return
 
@@ -1523,7 +1523,7 @@ class AccountHandlers:
         api_key = message.text.strip()
 
         # Check for cancel commands
-        if api_key.lower() in ("отмена", "cancel", "/cancel"):
+        if api_key.lower() in ("cancellation", "cancel", "/cancel"):
             await state.clear()
             await message.answer(t("account.zai_cancelled"))
             return
@@ -1594,7 +1594,7 @@ class AccountHandlers:
         from shared.i18n import get_translator
         t = get_translator(lang)
 
-        if message.text and message.text.lower() in ("отмена", "cancel", "/cancel"):
+        if message.text and message.text.lower() in ("cancellation", "cancel", "/cancel"):
             await state.clear()
             await message.answer(t("account.zai_cancelled"))
         else:

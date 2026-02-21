@@ -36,7 +36,7 @@ class StreamingHandler:
     """
     Manages streaming output to Telegram with rate limiting.
 
-    ВАЖНО: Все обновления теперь проходят через MessageUpdateCoordinator!
+    IMPORTANT: All updates now go through MessageUpdateCoordinator!
 
     Handles the complexities of:
     - Debouncing updates to avoid API rate limits
@@ -49,7 +49,7 @@ class StreamingHandler:
     # With heartbeat every 3s + content updates, we need careful timing
     MAX_MESSAGE_LENGTH = 4000  # Leave buffer from 4096
     DEBOUNCE_INTERVAL = 2.0  # Base seconds between updates (avoid rate limits)
-    MIN_UPDATE_INTERVAL = 2.0  # УВЕЛИЧЕНО до 2 секунд! Синхронизировано с координатором
+    MIN_UPDATE_INTERVAL = 2.0  # INCREASED to 2 seconds! Synchronized with coordinator
 
     # Adaptive interval thresholds (bytes) - increase interval for large messages
     LARGE_TEXT_BYTES = 2500  # >2.5KB → 2.5s interval
@@ -84,7 +84,7 @@ class StreamingHandler:
         self.reply_markup = reply_markup  # Cancel button etc.
         self._message_index = 1  # Current message number (for "Part N" indicator)
         self._just_created_continuation = False  # Flag to prevent immediate overflow after creating continuation
-        self._status_line = "🤖 <b>Запускаю...</b> ⠋ (0с)"  # Status line shown at bottom (always visible, HTML formatted)
+        self._status_line = "🤖 <b>I'm launching...</b> ⠋ (0With)"  # Status line shown at bottom (always visible, HTML formatted)
         self._formatter = IncrementalFormatter()  # Anti-flicker formatter
         self._todo_message: Optional[Message] = None  # Separate message for todo list (legacy, not used)
         self._plan_mode_message: Optional[Message] = None  # Plan mode indicator message
@@ -99,8 +99,8 @@ class StreamingHandler:
         # File change tracking for end-of-session summary
         self._file_change_tracker: Optional[FileChangeTracker] = None
 
-        # ЦЕНТРАЛИЗОВАННЫЙ КООРДИНАТОР ОБНОВЛЕНИЙ
-        # Если не передан - получаем глобальный
+        # CENTRALIZED UPDATE COORDINATOR
+        # If not transmitted, we get global
         self._coordinator = coordinator
         if self._coordinator is None:
             from presentation.handlers.state.update_coordinator import get_coordinator
@@ -193,7 +193,7 @@ class StreamingHandler:
             logger.error(f"Error sending file changes summary: {e}")
             return None
 
-    async def start(self, initial_text: str = "🤖 Запускаю...") -> Message:
+    async def start(self, initial_text: str = "🤖 I'm launching...") -> Message:
         """Start streaming with an initial message"""
         if not self.current_message:
             html_text = markdown_to_html(initial_text)
@@ -220,7 +220,7 @@ class StreamingHandler:
     async def append(self, text: str):
         """
         Append text to the stream buffer.
-        Обновление через координатор - он обеспечивает rate limiting.
+        Update via coordinator - it provides rate limiting.
         """
         if self.is_finalized:
             logger.debug(f"Streaming: append ignored, already finalized")
@@ -229,7 +229,7 @@ class StreamingHandler:
         self.buffer += text
         logger.debug(f"Streaming: appended {len(text)} chars, buffer now {len(self.buffer)} chars")
 
-        # Отправляем в координатор - он сам решит когда обновить
+        # We send it to the coordinator - he himself will decide when to update
         await self._do_update()
 
     async def append_line(self, text: str):
@@ -248,28 +248,28 @@ class StreamingHandler:
         idx = self.buffer.rfind(old_line)
         if idx != -1:
             self.buffer = self.buffer[:idx] + new_line + self.buffer[idx + len(old_line):]
-            await self._do_update()  # Координатор обеспечит rate limiting
+            await self._do_update()  # The coordinator will provide rate limiting
             return True
         return False
 
     async def force_update(self):
         """
-        Force an update - просто вызывает _do_update().
-        Координатор обеспечивает rate limiting.
+        Force an update - just calls _do_update().
+        The coordinator provides rate limiting.
         """
         await self._do_update()
 
     async def immediate_update(self):
         """
-        Immediately update - просто вызывает _do_update().
-        Координатор обеспечивает rate limiting.
+        Immediately update - just calls _do_update().
+        The coordinator provides rate limiting.
         """
         await self._do_update()
 
     async def set_status(self, status: str):
         """Set a status line at the bottom of the current message.
 
-        ВАЖНО: Координатор обеспечивает rate limiting (2с между обновлениями).
+        IMPORTANT: The coordinator provides rate limiting (2s between updates).
         """
         self._status_line = status
         await self._do_update()
@@ -293,12 +293,12 @@ class StreamingHandler:
         return self._status_line
 
     def _calc_edit_interval(self) -> float:
-        """Calculate edit interval - ВСЕГДА 2 секунды.
+        """Calculate edit interval - ALWAYS 2 seconds.
 
-        Координатор обеспечивает rate limiting, поэтому адаптивные
-        интервалы больше не нужны.
+        The coordinator provides rate limiting, therefore adaptive
+        no more intervals needed.
         """
-        return self.MIN_UPDATE_INTERVAL  # Всегда 2.0 секунды
+        return self.MIN_UPDATE_INTERVAL  # Always 2.0 seconds
 
     async def show_tool_use(self, tool_name: str, details: str = ""):
         """Show that a tool is being used with nice formatting"""
@@ -338,7 +338,7 @@ class StreamingHandler:
             truncated = truncated[:1500] + "\n... (truncated)"
 
         status = "✅" if success else "❌"
-        result_text = f"{status} **Вывод:**\n```\n{truncated}\n```\n"
+        result_text = f"{status} **Conclusion:**\n```\n{truncated}\n```\n"
         await self.append(result_text)
 
     async def show_todo_list(self, todos: list[dict]) -> None:
@@ -364,7 +364,7 @@ class StreamingHandler:
         completed = sum(1 for t in todos if t.get("status") == "completed")
         total = len(todos)
 
-        lines = [f"📋 <b>План</b> <i>({completed}/{total})</i>"]
+        lines = [f"📋 <b>Plan</b> <i>({completed}/{total})</i>"]
 
         for todo in todos:
             status = todo.get("status", "pending")
@@ -395,7 +395,7 @@ class StreamingHandler:
     async def show_plan_mode_enter(self) -> None:
         """Show that Claude entered plan mode.
 
-        ВАЖНО: Обновления проходят через координатор!
+        IMPORTANT: Updates go through the coordinator!
 
         Displays a visual indicator that Claude is analyzing
         the task and creating a plan before execution.
@@ -403,8 +403,8 @@ class StreamingHandler:
         self._is_plan_mode = True
 
         html_text = (
-            "🎯 <b>Режим планирования</b>\n\n"
-            "<i>Claude анализирует задачу и составляет план...</i>"
+            "🎯 <b>Planning mode</b>\n\n"
+            "<i>Claude analyzes the task and makes a plan...</i>"
         )
 
         try:
@@ -442,7 +442,7 @@ class StreamingHandler:
     async def show_plan_mode_exit(self, plan_approved: bool = False) -> None:
         """Show that Claude exited plan mode.
 
-        ВАЖНО: Обновления проходят через координатор!
+        IMPORTANT: Updates go through the coordinator!
 
         Args:
             plan_approved: Whether the plan was approved (True) or just ready (False)
@@ -450,9 +450,9 @@ class StreamingHandler:
         self._is_plan_mode = False
 
         if plan_approved:
-            html_text = "✅ <b>План утверждён</b> — начинаю выполнение"
+            html_text = "✅ <b>Plan approved</b> — I start execution"
         else:
-            html_text = "📋 <b>План готов</b> — ожидаю подтверждения"
+            html_text = "📋 <b>The plan is ready</b> — I'm waiting for confirmation"
 
         try:
             if self._plan_mode_message:
@@ -509,7 +509,7 @@ class StreamingHandler:
             return None
 
         # Build message text
-        lines = ["❓ <b>Вопрос от Claude:</b>\n"]
+        lines = ["❓ <b>Question from Claude:</b>\n"]
 
         for q in questions:
             header = q.get("header", "")
@@ -537,7 +537,7 @@ class StreamingHandler:
             keyboard = Keyboards.question_options(questions, question_id)
 
         try:
-            # Вопросы важны - используем координатор для надёжной доставки
+            # Questions are important - we use a coordinator for reliable delivery
             if self._coordinator:
                 msg = await self._coordinator.send_new(
                     self.chat_id,
@@ -558,19 +558,19 @@ class StreamingHandler:
             return None
 
     async def _schedule_update(self):
-        """Deprecated - просто вызывает _do_update().
+        """Deprecated - just calls _do_update().
 
-        Вся логика rate limiting теперь в координаторе.
+        All logic rate limiting now in coordinator.
         """
         await self._do_update()
 
     async def _do_update(self, _retry_count: int = 0):
         """Actually perform the update to Telegram.
 
-        ВАЖНО: Все обновления теперь проходят через координатор!
-        Координатор гарантирует интервал 2 секунды между обновлениями.
+        IMPORTANT: All updates now go through the coordinator!
+        The coordinator guarantees the interval 2 seconds between updates.
         """
-        # Обновляем если есть буфер ИЛИ статус (heartbeat)
+        # Update if there is a buffer OR status (heartbeat)
         if (not self.buffer and not self._status_line) or self.is_finalized:
             logger.debug(f"Streaming: _do_update skipped (buffer={bool(self.buffer)}, status={bool(self._status_line)}, finalized={self.is_finalized})")
             return
@@ -584,7 +584,7 @@ class StreamingHandler:
                 self.ui.sync_from_buffer(display_text)
 
             # Check if we need to split into multiple messages
-            # ВАЖНО: проверяем отрендеренный HTML, не raw buffer!
+            # IMPORTANT: check rendered HTML, Not raw buffer!
             rendered_html = self.ui.render_non_content()
             status = self._get_status_line()
             if status:
@@ -617,14 +617,14 @@ class StreamingHandler:
             logger.debug(f"Streaming: update completed")
 
         except Exception as e:
-            # Координатор обрабатывает rate limits внутри
+            # The coordinator processes rate limits inside
             logger.error(f"Error updating message: {e}")
 
     async def _edit_current_message(self, text: str, is_final: bool = False):
         """Edit the current message with valid HTML only.
 
-        ВАЖНО: Все обновления проходят через MessageUpdateCoordinator!
-        Координатор гарантирует минимум 2 секунды между обновлениями.
+        IMPORTANT: All updates go through MessageUpdateCoordinator!
+        The coordinator guarantees a minimum 2 seconds between updates.
 
         Uses StreamingUIState.render_non_content() for interleaved content+tools.
         """
@@ -648,7 +648,7 @@ class StreamingHandler:
         # Render everything through UI state (content + tools interleaved)
         html_text = self.ui.render_non_content()
 
-        # Логируем для отладки
+        # Logging for debugging
         logger.debug(
             f"_edit_current_message: text={len(text)}ch, html={len(html_text)}ch, "
             f"is_final={is_final}"
@@ -680,13 +680,13 @@ class StreamingHandler:
         if not html_text:
             return
 
-        # КРИТИЧЕСКОЕ ЛОГИРОВАНИЕ - что отправляем в координатор
+        # CRITICAL LOGING - what we send to the coordinator
         logger.info(
             f"_edit_current_message -> coordinator: {len(html_text)}ch, "
             f"msg_id={self.current_message.message_id}"
         )
 
-        # === ИСПОЛЬЗОВАТЬ КООРДИНАТОР ===
+        # === USE COORDINATOR ===
         if self._coordinator:
             await self._coordinator.update(
                 self.current_message,
@@ -696,7 +696,7 @@ class StreamingHandler:
                 is_final=is_final
             )
         else:
-            # Fallback: прямой вызов (не рекомендуется)
+            # Fallback: direct call (not recommended)
             logger.warning("Streaming: coordinator not available, using direct edit")
             try:
                 await self.current_message.edit_text(
@@ -754,76 +754,76 @@ class StreamingHandler:
         - Full history is preserved across messages
         """
         if is_final:
-            # На финальном этапе просто обрезаем если нужно
+            # At the final stage we simply trim if necessary
             await self._handle_overflow_trim(is_final=True)
             return
 
-        # Получаем размер отрендеренного HTML для логирования
+        # We get the size of the rendered HTML for logging
         rendered_html = self.ui.render_non_content()
         logger.info(f"Buffer overflow (rendered={len(rendered_html)} chars), creating new message")
 
-        # 1. Финализировать текущее сообщение (без статуса, без кнопок)
+        # 1. Finalize the current message (no status, no buttons)
         old_status = self._status_line
         old_markup = self.reply_markup
-        self._status_line = ""  # Убираем статус из старого сообщения
-        self.reply_markup = None  # Убираем кнопки из старого сообщения
+        self._status_line = ""  # Removing status from old message
+        self.reply_markup = None  # Removing buttons from an old message
 
-        # Финализируем UI state для старого сообщения
+        # Let's finalize UI state for an old message
         self.ui.finalize()
 
-        # Обрезаем если нужно, чтобы вписаться в лимит Telegram
+        # We trim if necessary to fit into the limit. Telegram
         final_html = self.ui.render_non_content()
         if len(final_html) > self.MAX_MESSAGE_LENGTH:
-            # Обрезаем до лимита с индикатором продолжения
-            truncate_indicator = "\n\n<i>...продолжение в следующем сообщении...</i>"
+            # Cut to the limit with a continuation indicator
+            truncate_indicator = "\n\n<i>...continued in the next message...</i>"
             max_content = self.MAX_MESSAGE_LENGTH - len(truncate_indicator) - 100
             final_html = final_html[:max_content] + truncate_indicator
             logger.info(f"Truncated overflow message to {len(final_html)} chars")
 
-        # Редактируем текущее сообщение напрямую (без повторного render)
+        # We edit the current message directly (without repeating render)
         if self.current_message and self._coordinator:
             await self._coordinator.update(
                 self.current_message,
                 final_html,
                 parse_mode="HTML",
-                reply_markup=None,  # Убираем кнопки
+                reply_markup=None,  # Removing buttons
                 is_final=True
             )
 
-        # 2. Восстанавливаем статус и кнопки для нового сообщения
+        # 2. Restoring the status and buttons for a new message
         self._status_line = old_status
         self.reply_markup = old_markup
 
-        # 3. Увеличиваем счётчик сообщений
+        # 3. Increasing the message counter
         self._message_index += 1
 
-        # 4. Сбрасываем форматтер и UI state для нового сообщения
+        # 4. Reset the formatter and UI state for new message
         self._formatter.reset()
-        self.ui.reset()  # КРИТИЧНО: сбросить UI state для нового сообщения!
+        self.ui.reset()  # CRITICAL: reset UI state for new message!
 
-        # 5. Создаём новый буфер с индикатором продолжения
-        continuation_header = f"📨 <b>Часть {self._message_index}</b>\n\n"
+        # 5. Create a new buffer with a continuation indicator
+        continuation_header = f"📨 <b>Part {self._message_index}</b>\n\n"
 
-        # 6. ФИКС: НЕ переносим старый контент - начинаем с чистого листа!
+        # 6. FIX: We DO NOT transfer old content - we start from scratch!
         #
-        # Проблема была: старый код пытался перенести "хвост" в новое сообщение,
-        # но это приводило к тому что:
-        # - Часть 2 создавалась почти пустой (только header + маленький хвост)
-        # - Новый контент сразу переполнял и создавалась Часть 3
+        # The problem was: the old code tried to move the "tail" to the new message,
+        # but this led to the fact that:
+        # - Part 2 was created almost empty (only header + small tail)
+        # - New content immediately overwhelmed and a Part was created 3
         #
-        # Решение: каждая часть начинается с чистого листа.
-        # Весь контент старого сообщения уже сохранён в нём.
-        # Новый контент будет добавляться в новое сообщение.
+        # Solution: each part starts from scratch.
+        # All content of the old message is already saved in it.
+        # New content will be added to a new post.
 
         self.buffer = continuation_header
 
-        # 7. Устанавливаем флаг, чтобы предотвратить немедленный overflow
-        # Если следующий chunk большой, дадим ему место в новом сообщении
+        # 7. Set a flag to prevent immediate overflow
+        # If next chunk big, let's give him a place in the new message
         self._just_created_continuation = True
 
         logger.info(f"Created clean continuation message #{self._message_index}")
 
-        # 7. Создаём новое сообщение
+        # 7. Create a new message
         self.current_message = await self._send_new_message(self.buffer)
         self.last_update_time = time.time()
 
@@ -903,7 +903,7 @@ class StreamingHandler:
 
     async def send_error(self, error: str):
         """Send an error message"""
-        error_text = f"❌ **Ошибка**\n```\n{error[:1000]}\n```"
+        error_text = f"❌ **Error**\n```\n{error[:1000]}\n```"
         await self.append(f"\n\n{error_text}")
         await self.finalize()
 
@@ -914,9 +914,9 @@ class StreamingHandler:
     async def send_completion(self, success: bool = True):
         """Send a completion indicator - rendered at the BOTTOM after tools"""
         if success:
-            self.ui.set_completion_status("✅ <b>Готово</b>")
+            self.ui.set_completion_status("✅ <b>Ready</b>")
         else:
-            self.ui.set_completion_status("⚠️ <b>Завершено с проблемами</b>")
+            self.ui.set_completion_status("⚠️ <b>Completed with problems</b>")
         await self.finalize()
 
     async def move_to_bottom(self, header: str = ""):
@@ -935,7 +935,7 @@ class StreamingHandler:
 
         # Reset state for new message
         self.current_message = None
-        self.buffer = header or "🤖 **Продолжаю...**\n\n"
+        self.buffer = header or "🤖 **I continue...**\n\n"
         self.is_finalized = False
 
         # Send new message at bottom

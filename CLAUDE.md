@@ -359,10 +359,10 @@ The bot maintains two session systems:
 The bot provides a comprehensive inline keyboard interface (`presentation/keyboards/keyboards.py`, 189+ lines):
 
 ### Main Menu
-- **💬 Чат с Claude Code**: Start coding session with Claude Code SDK/CLI
-- **📁 Проекты**: Browse and switch between projects
-- **👤 Аккаунт**: Switch between API Key and Claude Account modes
-- **⚙️ Настройки**: Configure bot settings
+- **💬 Chat with Claude Code**: Start coding session with Claude Code SDK/CLI
+- **📁 Projects**: Browse and switch between projects
+- **👤 Account**: Switch between API Key and Claude Account modes
+- **⚙️ Settings**: Configure bot settings
 - Legacy menu items: Metrics, Docker, Commands, SSH, GitLab
 
 ### Project Browser

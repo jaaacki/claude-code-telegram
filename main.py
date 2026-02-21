@@ -98,7 +98,7 @@ class Application:
                 plugins_info = claude_sdk.get_enabled_plugins_info()
                 available_plugins = [p["name"] for p in plugins_info if p.get("available")]
                 if available_plugins:
-                    logger.info(f"✓ Плагины: {', '.join(available_plugins)}")
+                    logger.info(f"✓ Plugins: {', '.join(available_plugins)}")
             else:
                 logger.warning(f"⚠ SDK: {sdk_msg}")
 
@@ -109,8 +109,8 @@ class Application:
         )
         self.dp = Dispatcher()
 
-        # ВАЖНО: Инициализировать координатор обновлений ПЕРЕД хэндлерами!
-        # Координатор гарантирует минимум 2 секунды между обновлениями сообщений
+        # IMPORTANT: Initialize the update coordinator BEFORE the handlers!
+        # The coordinator guarantees a minimum 2 seconds between message updates
         coordinator = init_coordinator(self.bot)
         logger.info(f"✓ MessageUpdateCoordinator initialized (min interval: {coordinator.MIN_UPDATE_INTERVAL}s)")
 
@@ -122,9 +122,9 @@ class Application:
         from presentation.middleware.rate_limit import RateLimitMiddleware
         admin_ids = self.container.config.admin_ids or []
         self.dp.message.middleware(RateLimitMiddleware(
-            rate_limit=0.5,  # 2 сообщения в секунду
-            burst=5,  # Максимум 5 сообщений мгновенно
-            admin_ids=admin_ids,  # Admins без ограничений
+            rate_limit=0.5,  # 2 messages per second
+            burst=5,  # Maximum 5 messages instantly
+            admin_ids=admin_ids,  # Admins no restrictions
         ))
         logger.info("✓ RateLimitMiddleware registered (0.5s per message, burst=5)")
 
@@ -178,9 +178,9 @@ class Application:
     async def _register_bot_commands(self):
         """Register bot commands in Telegram menu"""
         commands = [
-            BotCommand(command="start", description="📱 Открыть меню"),
-            BotCommand(command="yolo", description="⚡ Вкл/выкл авто-подтверждение"),
-            BotCommand(command="cancel", description="🛑 Отменить задачу"),
+            BotCommand(command="start", description="📱 Open menu"),
+            BotCommand(command="yolo", description="⚡ On/off auto-confirm"),
+            BotCommand(command="cancel", description="🛑 Cancel task"),
         ]
 
         try:
@@ -212,16 +212,16 @@ class Application:
         creds_info = account_service.get_credentials_info()
         creds_status = (
             f"✅ {creds_info.subscription_type}" if creds_info.exists
-            else "❌ не найден"
+            else "❌ not found"
         )
 
         message = (
-            f"🚀 <b>Бот запущен!</b>\n\n"
+            f"🚀 <b>Bot launched!</b>\n\n"
             f"🤖 @{bot_info.username}\n"
             f"📦 {sdk_status} | {cli_status}\n"
             f"☁️ Claude creds: {creds_status}\n"
             f"📁 {self.container.config.claude_working_dir}\n\n"
-            f"<i>Готов к работе</i>"
+            f"<i>Ready to go</i>"
         )
 
         # Notify all admins

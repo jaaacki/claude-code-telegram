@@ -75,12 +75,12 @@ def _format_tool_response(tool_name: str, response: Any, max_length: int = 500) 
         if tool_lower == "glob" and "filenames" in response:
             files = response.get("filenames", [])
             if not files:
-                return "Файлов не найдено"
+                return "No files found"
             # Show file list
             file_list = "\n".join(f"  {f}" for f in files[:20])
             if len(files) > 20:
-                file_list += f"\n  ... и ещё {len(files) - 20} файлов"
-            return f"Найдено {len(files)} файлов:\n{file_list}"
+                file_list += f"\n  ... and more {len(files) - 20} files"
+            return f"Found {len(files)} files:\n{file_list}"
 
         # Read results
         if tool_lower == "read" and "file" in response:
@@ -90,16 +90,16 @@ def _format_tool_response(tool_name: str, response: Any, max_length: int = 500) 
             if content:
                 truncated = content[:max_length]
                 if len(content) > max_length:
-                    truncated += "\n... (обрезано)"
+                    truncated += "\n... (cropped)"
                 return truncated
-            return f"Файл прочитан: {path}"
+            return f"File read: {path}"
 
         # Grep results
         if tool_lower == "grep" and "matches" in response:
             matches = response.get("matches", [])
             if not matches:
-                return "Совпадений не найдено"
-            return f"Найдено {len(matches)} совпадений"
+                return "No matches found"
+            return f"Found {len(matches)} matches"
 
         # Bash/shell command results
         if "stdout" in response or "stderr" in response:
@@ -110,18 +110,18 @@ def _format_tool_response(tool_name: str, response: Any, max_length: int = 500) 
             if stdout:
                 truncated = stdout[:max_length]
                 if len(stdout) > max_length:
-                    truncated += "\n... (обрезано)"
+                    truncated += "\n... (cropped)"
                 # Add stderr if present and different
                 if stderr and stderr != stdout:
-                    truncated += f"\n\nОшибки:\n{stderr[:200]}"
+                    truncated += f"\n\nErrors:\n{stderr[:200]}"
                 return truncated
 
             # Only stderr
             if stderr:
-                return f"Ошибки:\n{stderr[:max_length]}"
+                return f"Errors:\n{stderr[:max_length]}"
 
             # Empty result
-            return "(команда выполнена, вывода нет)"
+            return "(command executed, no output)"
 
         # Generic dict - try to extract useful info
         if "content" in response:
@@ -380,13 +380,13 @@ class ClaudeAgentSDKService:
         # Plugin descriptions (from official repo)
         plugin_descriptions = {
             "commit-commands": "Git workflow: commit, push, PR",
-            "code-review": "Ревью кода и PR",
-            "feature-dev": "Разработка фичи с архитектурой",
-            "frontend-design": "Создание UI интерфейсов",
-            "claude-code-setup": "Настройка Claude Code",
-            "security-guidance": "Проверка безопасности кода",
-            "pr-review-toolkit": "Инструменты ревью PR",
-            "ralph-loop": "RAFL: итеративное решение задач",
+            "code-review": "Code review and PR",
+            "feature-dev": "Development of features with architecture",
+            "frontend-design": "Creation UI interfaces",
+            "claude-code-setup": "Settings Claude Code",
+            "security-guidance": "Code security check",
+            "pr-review-toolkit": "Review tools PR",
+            "ralph-loop": "RAFL: iterative problem solving",
         }
 
         for plugin_name in self.enabled_plugins:
@@ -956,7 +956,7 @@ class ClaudeAgentSDKService:
                         # For Edit, we show what's being changed
                         old_str = tool_input.get("old_string", "")
                         new_str = tool_input.get("new_string", "")
-                        plan_content = f"Редактирование плана:\n\nБыло:\n{old_str[:500]}\n\nСтало:\n{new_str[:500]}"
+                        plan_content = f"Editing a plan:\n\nWas:\n{old_str[:500]}\n\nIt became:\n{new_str[:500]}"
 
                     self._task_status[user_id] = TaskStatus.WAITING_PERMISSION
                     plan_event.clear()

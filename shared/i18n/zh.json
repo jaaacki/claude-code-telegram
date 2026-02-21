@@ -6,14 +6,14 @@
   },
 
   "lang.select": "🌐 选择语言：",
-  "lang.ru": "🇷🇺 Русский",
+  "lang.ru": "🇷🇺 Russian",
   "lang.en": "🇬🇧 English",
   "lang.zh": "🇨🇳 中文",
   "lang.changed": "✅ 语言已更改为中文",
 
   "start.greeting": "👋 你好，{name}！",
   "start.welcome": "欢迎使用 Claude Code Telegram 机器人",
-  "start.select_language": "🌐 Select language / Выберите язык / 选择语言:",
+  "start.select_language": "🌐 Select language / Select language / 选择语言:",
   "start.status": "📊 状态：",
   "start.no_project": "📂 没有活动项目",
   "start.project": "📂 项目：{name}",

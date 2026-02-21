@@ -194,14 +194,14 @@ class VariableInputManager:
         normalized = name.strip().upper()
 
         if not normalized:
-            return ValidationResult.invalid("Имя не может быть пустым")
+            return ValidationResult.invalid("The name cannot be empty")
 
         if not self.NAME_PATTERN.match(normalized):
             return ValidationResult.invalid(
-                "Имя должно:\n"
-                "• Начинаться с буквы\n"
-                "• Содержать только буквы, цифры и _\n\n"
-                "Например: GITLAB_TOKEN, API_KEY, PROJECT_STACK"
+                "The name must:\n"
+                "• Start with a letter\n"
+                "• Contain only letters, numbers and _\n\n"
+                "For example: GITLAB_TOKEN, API_KEY, PROJECT_STACK"
             )
 
         return ValidationResult.valid(normalized)
@@ -209,5 +209,5 @@ class VariableInputManager:
     def validate_value(self, value: str) -> ValidationResult:
         """Validate variable value"""
         if not value or not value.strip():
-            return ValidationResult.invalid("Значение не может быть пустым")
+            return ValidationResult.invalid("Value cannot be empty")
         return ValidationResult.valid(value.strip())

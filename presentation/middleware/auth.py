@@ -32,15 +32,21 @@ class AuthMiddleware(BaseMiddleware):
             return
 
         user_id = event.from_user.id
+        user_name = event.from_user.username or ""
+        first_name = event.from_user.first_name or ""
+        last_name = event.from_user.last_name or ""
 
-        # For /start command - allow without auth to create user
-        if event.text and event.text.startswith("/start"):
-            return await handler(event, data)
-
-        # Check authorization
-        user = await self.bot_service.authorize_user(user_id)
-        if not user:
+        # Check whitelist first
+        if not self.bot_service.is_user_allowed(user_id):
+            logger.warning(f"Unauthorized access attempt from user_id: {user_id} (not in whitelist)")
             await event.answer("❌ You are not authorized to use this bot.")
+            return
+
+        # Get or create user (creates if not exists and whitelisted)
+        user = await self.bot_service.get_or_create_user(user_id, user_name, first_name, last_name)
+        if not user:
+            logger.error(f"Failed to create user {user_id}")
+            await event.answer("❌ Error creating user account.")
             return
 
         # Add user to data

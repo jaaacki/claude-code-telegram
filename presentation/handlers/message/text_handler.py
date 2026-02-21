@@ -83,7 +83,7 @@ class TextMessageHandler(BaseMessageHandler):
 
         user = await self.bot_service.authorize_user(user_id)
         if not user:
-            await message.answer("Вы не авторизованы для использования этого бота.")
+            await message.answer("You are not authorized to use this bot.")
             return
 
         # Load yolo_mode from DB if not already loaded
@@ -120,7 +120,7 @@ class TextMessageHandler(BaseMessageHandler):
                     files_info = self.file_processor_service.get_files_summary(cached_files)
 
                 task_preview = message.text[:50] + "..." if len(message.text) > 50 else message.text
-                await message.answer(f"📎 Файлы: {files_info}\n📝 Задача: {task_preview}\n\n⏳ Запускаю Claude Code...")
+                await message.answer(f"📎 Files: {files_info}\n📝 Task: {task_preview}\n\n⏳ I'm launching Claude Code...")
                 # Execute task with file context and return (mark as processed to prevent re-processing)
                 await self.handle_text(message, prompt_override=enriched_prompt, _file_processed=True)
                 return
@@ -135,12 +135,12 @@ class TextMessageHandler(BaseMessageHandler):
                     processed_file, message.text, working_dir=working_dir
                 )
                 task_preview = message.text[:50] + "..." if len(message.text) > 50 else message.text
-                await message.answer(f"📎 Файл: {processed_file.filename}\n📝 Задача: {task_preview}\n\n⏳ Запускаю Claude Code...")
+                await message.answer(f"📎 File: {processed_file.filename}\n📝 Task: {task_preview}\n\n⏳ I'm launching Claude Code...")
                 # Execute task with file context and return (mark as processed to prevent re-processing)
                 await self.handle_text(message, prompt_override=enriched_prompt, _file_processed=True)
                 return
 
-        # === SPECIAL INPUT MODES (не батчатся - обрабатываются сразу) ===
+        # === SPECIAL INPUT MODES (no batching - processed immediately) ===
         logger.debug(f"[{user_id}] Checking special input modes: "
                     f"expecting_answer={self.hitl_manager.is_expecting_answer(user_id)}, "
                     f"expecting_clarification={self.hitl_manager.is_expecting_clarification(user_id)}")
@@ -191,10 +191,10 @@ class TextMessageHandler(BaseMessageHandler):
                     return
 
         # === MESSAGE BATCHING ===
-        # Объединяем несколько сообщений за 0.5с в один запрос
-        # НЕ батчим если: уже из батчера, есть prompt_override, или задача уже выполняется
+        # Combining multiple messages 0.5with in one request
+        # DO NOT batch if: already from the butcher, there is prompt_override, or the task is already running
         if not _from_batcher and not prompt_override and not self.ai_request_handler._is_task_running(user_id):
-            # Добавляем сообщение в batch
+            # Add a message to batch
             async def process_batched(first_msg: Message, combined_text: str):
                 await self.handle_text(
                     first_msg,
@@ -209,8 +209,8 @@ class TextMessageHandler(BaseMessageHandler):
         # === CHECK IF TASK RUNNING ===
         if self.ai_request_handler._is_task_running(user_id):
             await message.answer(
-                "Задача уже выполняется.\n\n"
-                "Используйте кнопку отмены или /cancel чтобы остановить.",
+                "The task is already running.\n\n"
+                "Use the cancel button or /cancel to stop.",
                 reply_markup=Keyboards.claude_cancel(user_id)
             )
             return
@@ -296,7 +296,7 @@ class TextMessageHandler(BaseMessageHandler):
         self.hitl_manager.create_permission_event(user_id)
         self.hitl_manager.create_question_event(user_id)
 
-        heartbeat = HeartbeatTracker(streaming, interval=2.0)  # 2 seconds - координатор обеспечивает rate limiting
+        heartbeat = HeartbeatTracker(streaming, interval=2.0)  # 2 seconds - coordinator provides rate limiting
         self.user_state.set_heartbeat(user_id, heartbeat)
         await heartbeat.start()
 
@@ -435,7 +435,7 @@ class TextMessageHandler(BaseMessageHandler):
         self.hitl_manager.set_expecting_answer(user_id, False)
 
         answer = message.text
-        await message.answer(f"Ответ: {answer[:50]}...")
+        await message.answer(f"Answer: {answer[:50]}...")
 
         # Delegate to hitl_handler which is accessible through parent
         # For now, use the manager directly
@@ -462,14 +462,14 @@ class TextMessageHandler(BaseMessageHandler):
         logger.info(f"[{user_id}] handle_permission_response returned: {success}")
 
         if success:
-            await message.answer(f"💬 Уточнение отправлено: {preview}")
+            await message.answer(f"💬 Clarification sent: {preview}")
         else:
             # No active permission request - clarification was ignored
             logger.warning(f"[{user_id}] Clarification was not accepted - no active permission request")
             await message.answer(
-                f"⚠️ Нет активного запроса на подтверждение.\n\n"
-                f"Ваше уточнение: {preview}\n\n"
-                f"Отправьте это как новый запрос или дождитесь запроса от Claude.",
+                f"⚠️ No active confirmation request.\n\n"
+                f"Your clarification: {preview}\n\n"
+                f"Submit this as a new request or wait for a request from Claude.",
                 parse_mode=None
             )
 
@@ -486,12 +486,12 @@ class TextMessageHandler(BaseMessageHandler):
         success = False  # Will be implemented in coordinator
 
         if success:
-            await message.answer(f"💬 Уточнение плана отправлено: {preview}")
+            await message.answer(f"💬 Plan clarification sent: {preview}")
         else:
             await message.answer(
-                f"⚠️ Нет активного запроса на утверждение плана.\n\n"
-                f"Ваше уточнение: {preview}\n\n"
-                f"Отправьте это как новый запрос.",
+                f"⚠️ No active plan approval request.\n\n"
+                f"Your clarification: {preview}\n\n"
+                f"Submit this as a new request.",
                 parse_mode=None
             )
 
@@ -504,7 +504,7 @@ class TextMessageHandler(BaseMessageHandler):
         path = message.text.strip()
         self.user_state.set_working_dir(user_id, path)
 
-        await message.answer(f"Рабочая папка установлена:\n{path}", parse_mode=None)
+        await message.answer(f"Working folder set:\n{path}", parse_mode=None)
 
     # Copied from legacy messages.py:1460-1482
     async def _handle_var_name_input(self, message: Message):
@@ -515,7 +515,7 @@ class TextMessageHandler(BaseMessageHandler):
         result = self.variable_manager.validate_name(var_name)
         if not result.is_valid:
             await message.answer(
-                f"Неверное имя переменной\n\n{result.error}",
+                f"Invalid variable name\n\n{result.error}",
                 parse_mode=None,
                 reply_markup=Keyboards.variable_cancel()
             )
@@ -525,8 +525,8 @@ class TextMessageHandler(BaseMessageHandler):
         self.variable_manager.move_to_value_step(user_id, result.normalized_name)
 
         await message.answer(
-            f"Введите значение для {result.normalized_name}:\n\n"
-            f"Например: glpat-xxxx или Python/FastAPI",
+            f"Enter a value for {result.normalized_name}:\n\n"
+            f"For example: glpat-xxxx or Python/FastAPI",
             parse_mode=None,
             reply_markup=Keyboards.variable_cancel()
         )
@@ -572,10 +572,10 @@ class TextMessageHandler(BaseMessageHandler):
         self.variable_manager.move_to_description_step(user_id, var_value)
 
         await message.answer(
-            f"Введите описание для {var_name}:\n\n"
-            f"Опишите, для чего эта переменная и как её использовать.\n"
-            f"Например: Токен GitLab для git push/pull\n\n"
-            f"Или нажмите кнопку, чтобы пропустить.",
+            f"Enter a description for {var_name}:\n\n"
+            f"Describe what this variable does and how to use it.\n"
+            f"For example: Token GitLab For git push/pull\n\n"
+            f"Or click the button to skip.",
             parse_mode=None,
             reply_markup=Keyboards.variable_skip_description()
         )
@@ -599,7 +599,7 @@ class TextMessageHandler(BaseMessageHandler):
         user_id = message.from_user.id
 
         if not self.project_service or not self.context_service:
-            await message.answer("Сервисы не инициализированы")
+            await message.answer("Services are not initialized")
             self.variable_manager.cancel(user_id)
             return
 
@@ -609,13 +609,13 @@ class TextMessageHandler(BaseMessageHandler):
 
             project = await self.project_service.get_current(uid)
             if not project:
-                await message.answer("Нет активного проекта. Используйте /change")
+                await message.answer("No active project. Use /change")
                 self.variable_manager.cancel(user_id)
                 return
 
             context = await self.context_service.get_current(project.id)
             if not context:
-                await message.answer("Нет активного контекста")
+                await message.answer("No active context")
                 self.variable_manager.cancel(user_id)
                 return
 
@@ -629,10 +629,10 @@ class TextMessageHandler(BaseMessageHandler):
             desc_info = f"\n{var_desc}" if var_desc else ""
 
             await message.answer(
-                f"Переменная создана\n\n"
+                f"Variable created\n\n"
                 f"{var_name} = {display_val}"
                 f"{desc_info}\n\n"
-                f"Всего переменных: {len(variables)}",
+                f"Total variables: {len(variables)}",
                 parse_mode=None,
                 reply_markup=Keyboards.variables_menu(
                     variables, project.name, context.name,
@@ -642,5 +642,5 @@ class TextMessageHandler(BaseMessageHandler):
 
         except Exception as e:
             logger.error(f"Error saving variable: {e}")
-            await message.answer(f"Ошибка: {e}")
+            await message.answer(f"Error: {e}")
             self.variable_manager.cancel(user_id)

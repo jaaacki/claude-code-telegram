@@ -193,24 +193,24 @@ class ClaudeUsageService:
     def format_usage_for_telegram(self, limits: UsageLimits) -> str:
         """Format usage limits for Telegram display"""
         if limits.error:
-            return f"❌ <b>Ошибка:</b> {limits.error}"
+            return f"❌ <b>Error:</b> {limits.error}"
 
-        lines = ["📊 <b>Лимиты Claude.ai</b>\n"]
+        lines = ["📊 <b>Limits Claude.ai</b>\n"]
 
         # Session limits
         if limits.session_used_percent is not None:
             bar = self._make_progress_bar(limits.session_used_percent)
-            lines.append(f"<b>Сессия:</b> {bar} {limits.session_used_percent:.0f}%")
+            lines.append(f"<b>Session:</b> {bar} {limits.session_used_percent:.0f}%")
             if limits.session_resets_in:
-                lines.append(f"   Сброс через: {limits.session_resets_in}")
+                lines.append(f"   Reset via: {limits.session_resets_in}")
             lines.append("")
 
         # Weekly limits
         if limits.weekly_used_percent is not None:
             bar = self._make_progress_bar(limits.weekly_used_percent)
-            lines.append(f"<b>Неделя:</b> {bar} {limits.weekly_used_percent:.0f}%")
+            lines.append(f"<b>Week:</b> {bar} {limits.weekly_used_percent:.0f}%")
             if limits.weekly_resets_at:
-                lines.append(f"   Сброс: {limits.weekly_resets_at}")
+                lines.append(f"   Reset: {limits.weekly_resets_at}")
             lines.append("")
 
         # Sonnet limits
@@ -218,25 +218,25 @@ class ClaudeUsageService:
             bar = self._make_progress_bar(limits.sonnet_used_percent)
             lines.append(f"<b>Sonnet:</b> {bar} {limits.sonnet_used_percent:.0f}%")
             if limits.sonnet_resets_at:
-                lines.append(f"   Сброс: {limits.sonnet_resets_at}")
+                lines.append(f"   Reset: {limits.sonnet_resets_at}")
             lines.append("")
 
         # Subscription info
         if limits.subscription_type:
-            lines.append(f"📋 Подписка: <code>{limits.subscription_type}</code>")
+            lines.append(f"📋 Subscription: <code>{limits.subscription_type}</code>")
         if limits.rate_limit_tier:
             lines.append(f"⚡ Tier: <code>{limits.rate_limit_tier}</code>")
 
         # If we have raw data but couldn't parse usage
         if not any([limits.session_used_percent, limits.weekly_used_percent, limits.sonnet_used_percent]):
             if limits.raw_data:
-                lines.append("\n<i>API вернул данные, но формат отличается от ожидаемого.</i>")
+                lines.append("\n<i>API returned data, but the format is different from expected.</i>")
                 # Show some raw data for debugging
                 if isinstance(limits.raw_data, dict):
                     keys = list(limits.raw_data.keys())[:5]
-                    lines.append(f"<i>Ключи: {', '.join(keys)}</i>")
+                    lines.append(f"<i>Keys: {', '.join(keys)}</i>")
             else:
-                lines.append("\n<i>Не удалось получить данные о лимитах.</i>")
+                lines.append("\n<i>Failed to get limit data.</i>")
 
         return "\n".join(lines)
 

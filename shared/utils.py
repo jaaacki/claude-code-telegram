@@ -27,7 +27,7 @@ def truncate_for_telegram(text: str, limit: int = TEXT_TRUNCATE_LIMIT) -> str:
     return text[:limit] + "\n... (truncated)"
 
 
-def require_same_user(error_message: str = "Это не ваше сообщение"):
+def require_same_user(error_message: str = "This is not your message"):
     """
     Decorator to ensure callback is from the same user who triggered the action.
 
@@ -40,7 +40,7 @@ def require_same_user(error_message: str = "Это не ваше сообщен�
             # Only executes if user_id matches
             pass
 
-        @require_same_user("Вы не можете управлять чужой задачей")
+        @require_same_user("You can't manage someone else's task")
         async def handle_cancel(self, callback: CallbackQuery):
             pass
     """

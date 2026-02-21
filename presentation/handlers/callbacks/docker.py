@@ -23,26 +23,26 @@ class DockerCallbackHandler(BaseCallbackHandler):
             metrics = info["metrics"]
 
             text = (
-                f"📊 <b>Метрики системы</b>\n\n"
+                f"📊 <b>System metrics</b>\n\n"
                 f"💻 <b>CPU:</b> {metrics['cpu_percent']:.1f}%\n"
-                f"🧠 <b>Память:</b> {metrics['memory_percent']:.1f}% "
+                f"🧠 <b>Memory:</b> {metrics['memory_percent']:.1f}% "
                 f"({metrics['memory_used_gb']}GB / {metrics['memory_total_gb']}GB)\n"
-                f"💾 <b>Диск:</b> {metrics['disk_percent']:.1f}% "
+                f"💾 <b>Disk:</b> {metrics['disk_percent']:.1f}% "
                 f"({metrics['disk_used_gb']}GB / {metrics['disk_total_gb']}GB)\n"
             )
 
             if metrics.get('load_average', [0])[0] > 0:
-                text += f"📈 <b>Нагрузка:</b> {metrics['load_average'][0]:.2f}\n"
+                text += f"📈 <b>Load:</b> {metrics['load_average'][0]:.2f}\n"
 
             if info.get("alerts"):
-                text += "\n⚠️ <b>Предупреждения:</b>\n"
+                text += "\n⚠️ <b>Warnings:</b>\n"
                 text += "\n".join(info["alerts"])
 
             await callback.message.edit_text(text, parse_mode="HTML")
 
         except Exception as e:
             logger.error(f"Error refreshing metrics: {e}")
-            await callback.answer(f"❌ Ошибка: {e}")
+            await callback.answer(f"❌ Error: {e}")
 
         await callback.answer()
 
@@ -56,15 +56,15 @@ class DockerCallbackHandler(BaseCallbackHandler):
             containers = await monitor.get_docker_containers()
 
             if not containers:
-                text = "🐳 Контейнеры не найдены"
+                text = "🐳 No containers found"
                 await callback.message.edit_text(text, parse_mode=None)
             else:
-                lines = ["🐳 <b>Docker контейнеры:</b>\n"]
+                lines = ["🐳 <b>Docker containers:</b>\n"]
                 for c in containers:
                     status_emoji = "🟢" if c["status"] == "running" else "🔴"
                     lines.append(f"\n{status_emoji} <b>{c['name']}</b>")
-                    lines.append(f"   Статус: {c['status']}")
-                    lines.append(f"   Образ: <code>{c['image'][:30]}</code>")
+                    lines.append(f"   Status: {c['status']}")
+                    lines.append(f"   Image: <code>{c['image'][:30]}</code>")
 
                 text = "\n".join(lines)
                 await callback.message.edit_text(
@@ -75,7 +75,7 @@ class DockerCallbackHandler(BaseCallbackHandler):
 
         except Exception as e:
             logger.error(f"Error listing containers: {e}")
-            await callback.answer(f"❌ Ошибка: {e}")
+            await callback.answer(f"❌ Error: {e}")
 
         await callback.answer()
 
@@ -109,7 +109,7 @@ class DockerCallbackHandler(BaseCallbackHandler):
 
         except Exception as e:
             logger.error(f"Error {action} container: {e}")
-            await callback.answer(f"❌ Ошибка: {e}")
+            await callback.answer(f"❌ Error: {e}")
 
     async def handle_docker_stop(self, callback: CallbackQuery) -> None:
         """Handle docker stop container"""
@@ -148,8 +148,8 @@ class DockerCallbackHandler(BaseCallbackHandler):
             total = len(log_lines)
 
             if total == 0:
-                text = f"📋 <b>Логи</b> ({container_id})\n\n<i>(пусто)</i>"
-                buttons = [[InlineKeyboardButton(text="🔙 К контейнерам", callback_data="menu:system:docker:0")]]
+                text = f"📋 <b>Logs</b> ({container_id})\n\n<i>(empty)</i>"
+                buttons = [[InlineKeyboardButton(text="🔙 To containers", callback_data="menu:system:docker:0")]]
                 await callback.message.edit_text(
                     text,
                     reply_markup=InlineKeyboardMarkup(inline_keyboard=buttons),
@@ -171,7 +171,7 @@ class DockerCallbackHandler(BaseCallbackHandler):
             if len(logs_text) > TEXT_TRUNCATE_LIMIT:
                 logs_text = logs_text[-TEXT_TRUNCATE_LIMIT:]
 
-            text = f"📋 <b>Логи</b> ({container_id}) — {current_page}/{total_pages}\n\n<pre>{logs_text}</pre>"
+            text = f"📋 <b>Logs</b> ({container_id}) — {current_page}/{total_pages}\n\n<pre>{logs_text}</pre>"
 
             # Navigation buttons
             buttons = []
@@ -179,14 +179,14 @@ class DockerCallbackHandler(BaseCallbackHandler):
 
             if offset + DOCKER_LOGS_PAGE_SIZE < total:
                 nav_row.append(InlineKeyboardButton(
-                    text="⬅️ Старше",
+                    text="⬅️ Older",
                     callback_data=f"docker:logs:{container_id}:{offset + DOCKER_LOGS_PAGE_SIZE}"
                 ))
 
             if offset > 0:
                 new_offset = max(0, offset - DOCKER_LOGS_PAGE_SIZE)
                 nav_row.append(InlineKeyboardButton(
-                    text="Новее ➡️",
+                    text="Newer ➡️",
                     callback_data=f"docker:logs:{container_id}:{new_offset}"
                 ))
 
@@ -194,8 +194,8 @@ class DockerCallbackHandler(BaseCallbackHandler):
                 buttons.append(nav_row)
 
             buttons.append([
-                InlineKeyboardButton(text="🔄 Обновить", callback_data=f"docker:logs:{container_id}:{offset}"),
-                InlineKeyboardButton(text="🔙 Назад", callback_data="menu:system:docker:0")
+                InlineKeyboardButton(text="🔄 Update", callback_data=f"docker:logs:{container_id}:{offset}"),
+                InlineKeyboardButton(text="🔙 Back", callback_data="menu:system:docker:0")
             ])
 
             keyboard = InlineKeyboardMarkup(inline_keyboard=buttons)
@@ -203,7 +203,7 @@ class DockerCallbackHandler(BaseCallbackHandler):
 
         except Exception as e:
             logger.error(f"Error getting logs: {e}")
-            await callback.answer(f"❌ Ошибка: {e}")
+            await callback.answer(f"❌ Error: {e}")
 
         await callback.answer()
 
@@ -220,13 +220,13 @@ class DockerCallbackHandler(BaseCallbackHandler):
             container = next((c for c in containers if c["id"] == container_id), None)
             if container:
                 text = (
-                    f"🐳 <b>Контейнер: {container['name']}</b>\n\n"
+                    f"🐳 <b>Container: {container['name']}</b>\n\n"
                     f"<b>ID:</b> <code>{container['id']}</code>\n"
-                    f"<b>Статус:</b> {container['status']}\n"
-                    f"<b>Образ:</b> <code>{container['image']}</code>\n"
+                    f"<b>Status:</b> {container['status']}\n"
+                    f"<b>Image:</b> <code>{container['image']}</code>\n"
                 )
                 if container.get("ports"):
-                    text += f"<b>Порты:</b> {', '.join(str(p) for p in container['ports'])}\n"
+                    text += f"<b>Ports:</b> {', '.join(str(p) for p in container['ports'])}\n"
 
                 await callback.message.edit_text(
                     text,
@@ -237,11 +237,11 @@ class DockerCallbackHandler(BaseCallbackHandler):
                     )
                 )
             else:
-                await callback.answer("Контейнер не найден")
+                await callback.answer("Container not found")
 
         except Exception as e:
             logger.error(f"Error getting container info: {e}")
-            await callback.answer(f"❌ Ошибка: {e}")
+            await callback.answer(f"❌ Error: {e}")
 
     async def handle_metrics_top(self, callback: CallbackQuery) -> None:
         """Handle metrics top callback - show top processes"""
@@ -252,9 +252,9 @@ class DockerCallbackHandler(BaseCallbackHandler):
             processes = await monitor.get_top_processes(limit=10)
 
             if not processes:
-                text = "📊 Нет данных о процессах"
+                text = "📊 No process data"
             else:
-                lines = ["📊 <b>Top процессы:</b>\n"]
+                lines = ["📊 <b>Top processes:</b>\n"]
                 for p in processes:
                     lines.append(
                         f"<code>{p['pid']:>6}</code> "
@@ -273,6 +273,6 @@ class DockerCallbackHandler(BaseCallbackHandler):
 
         except Exception as e:
             logger.error(f"Error getting top processes: {e}")
-            await callback.answer(f"❌ Ошибка: {e}")
+            await callback.answer(f"❌ Error: {e}")
 
         await callback.answer()

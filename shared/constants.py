@@ -37,13 +37,13 @@ CLAUDE_LINE_READ_TIMEOUT_SECONDS = 60
 # === Plugin Descriptions ===
 PLUGIN_DESCRIPTIONS = {
     "commit-commands": "Git workflow: commit, push, PR",
-    "code-review": "Ревью кода и PR",
-    "feature-dev": "Разработка фичи с архитектурой",
-    "frontend-design": "Создание UI интерфейсов",
-    "claude-code-setup": "Настройка Claude Code",
-    "security-guidance": "Проверка безопасности кода",
-    "pr-review-toolkit": "Инструменты ревью PR",
-    "ralph-loop": "RAFL: итеративное решение задач",
+    "code-review": "Code review and PR",
+    "feature-dev": "Development of features with architecture",
+    "frontend-design": "Creation UI interfaces",
+    "claude-code-setup": "Settings Claude Code",
+    "security-guidance": "Code security check",
+    "pr-review-toolkit": "Review tools PR",
+    "ralph-loop": "RAFL: iterative problem solving",
 }
 
 # === Output Display ===
@@ -63,8 +63,8 @@ TELEGRAM_MESSAGE_LIMIT = 4096
 TELEGRAM_CALLBACK_DATA_LIMIT = 64
 
 # === Error Messages ===
-ERROR_UNAUTHORIZED = "Вы не авторизованы для использования этого бота."
-ERROR_TASK_RUNNING = "Задача уже выполняется.\n\nИспользуйте кнопку отмены или /cancel чтобы остановить."
-ERROR_TIMEOUT = "Время ожидания истекло."
-ERROR_NO_PROJECT = "Нет активного проекта. Используйте /change"
-ERROR_NO_CONTEXT = "Нет активного контекста"
+ERROR_UNAUTHORIZED = "You are not authorized to use this bot."
+ERROR_TASK_RUNNING = "The task is already running.\n\nUse the cancel button or /cancel to stop."
+ERROR_TIMEOUT = "Timed out."
+ERROR_NO_PROJECT = "No active project. Use /change"
+ERROR_NO_CONTEXT = "No active context"
