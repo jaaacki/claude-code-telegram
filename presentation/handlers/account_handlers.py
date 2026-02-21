@@ -118,7 +118,11 @@ class OAuthLoginSession:
                     # Look for OAuth URL in line
                     url_match = re.search(r'https://claude\.ai/oauth/authorize[^\s]+', decoded)
                     if url_match:
-                        return url_match.group(0)
+                        url = url_match.group(0)
+                        state_match = re.search(r'state=([^&]+)', url)
+                        if state_match:
+                            self.oauth_state = state_match.group(1)
+                        return url
 
                 return None
 
@@ -161,9 +165,62 @@ class OAuthLoginSession:
             return False, "Login session not active"
 
         try:
-            # Send code to stdin
-            self.process.stdin.write(f"{code}\n".encode())
-            await self.process.stdin.drain()
+            logger.info(f"[{self.user_id}] Received OAuth code, injecting via loopback interface...")
+            
+            # Find the port the CLI is listening on
+            port = None
+            try:
+                import os
+                fds = os.listdir(f"/proc/{self.process.pid}/fd")
+                for fd in fds:
+                    link = os.readlink(f"/proc/{self.process.pid}/fd/{fd}")
+                    if "socket" in link:
+                        inode = link.split("[")[1].split("]")[0]
+                        with open("/proc/net/tcp6") as f:
+                            for line in f:
+                                if inode in line:
+                                    port = int(line.split()[1].split(":")[1], 16)
+                                    break
+                        if not port:
+                            with open("/proc/net/tcp") as f:
+                                for line in f:
+                                    if inode in line:
+                                        port = int(line.split()[1].split(":")[1], 16)
+                                        break
+                    if port: break
+            except Exception as e:
+                logger.warning(f"[{self.user_id}] Failed to find loopback port: {e}")
+
+            success_injected = False
+            if port and hasattr(self, 'oauth_state'):
+                import urllib.request
+                try:
+                    callback_url = f"http://[::1]:{port}/callback?code={code}&state={self.oauth_state}"
+                    logger.info(f"[{self.user_id}] Hitting internal CLI callback: {callback_url}")
+                    # Usually returns 302 or similar, so we catch HTTPError which is still a success for injecting the code
+                    import urllib.error
+                    try:
+                        urllib.request.urlopen(callback_url, timeout=5)
+                    except urllib.error.HTTPError as e:
+                        logger.info(f"[{self.user_id}] Received {e.code} from callback (expected)")
+                    success_injected = True
+                except Exception as e:
+                    logger.warning(f"[{self.user_id}] IPv6 callback failed: {e}. Trying IPv4...")
+                    callback_url = f"http://127.0.0.1:{port}/callback?code={code}&state={self.oauth_state}"
+                    try:
+                        import urllib.error
+                        try:
+                            urllib.request.urlopen(callback_url, timeout=5)
+                        except urllib.error.HTTPError as e:
+                            logger.info(f"[{self.user_id}] Received {e.code} from ipv4 callback (expected)")
+                        success_injected = True
+                    except Exception as e2:
+                        logger.error(f"[{self.user_id}] IPv4 Callback failed: {e2}")
+
+            if not success_injected:
+                # Fallback to stdin just in case
+                self.process.stdin.write(f"{code}\n".encode())
+                await self.process.stdin.drain()
 
             logger.info(f"[{self.user_id}] Submitted OAuth code")
 
