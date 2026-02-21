@@ -571,6 +571,8 @@ This project is licensed under the MIT License — see the [LICENSE](LICENSE) fi
 
 ## 🙏 Acknowledgments
 
+This project is a translated and modified version of the original repository: [Angusstone7/claude-code-telegram](https://github.com/Angusstone7/claude-code-telegram). Special thanks to the original author for the amazing work!
+
 Built with these amazing tools:
 
 - [Aiogram](https://aiogram.dev/) — Modern Telegram bot framework
