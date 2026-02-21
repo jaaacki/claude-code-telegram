@@ -397,7 +397,7 @@ class Keyboards:
         return InlineKeyboardMarkup(inline_keyboard=buttons)
 
     @staticmethod
-    def menu_back_only(back_to: str = "menu:main") -> InlineKeyboardMarkup:
+    def menu_back_only(back_to: str = "menu:main", **kwargs) -> InlineKeyboardMarkup:
         """Simple back button keyboard"""
         return InlineKeyboardMarkup(inline_keyboard=[
             [InlineKeyboardButton(text="◀️ Back", callback_data=back_to)]
