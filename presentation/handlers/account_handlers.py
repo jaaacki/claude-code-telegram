@@ -199,21 +199,32 @@ class OAuthLoginSession:
                     logger.info(f"[{self.user_id}] Hitting internal CLI callback: {callback_url}")
                     # Usually returns 302 or similar, so we catch HTTPError which is still a success for injecting the code
                     import urllib.error
+                    req = urllib.request.Request(
+                        callback_url,
+                        headers={"Host": f"localhost:{port}", "User-Agent": "Mozilla/5.0"}
+                    )
                     try:
-                        urllib.request.urlopen(callback_url, timeout=5)
+                        urllib.request.urlopen(req, timeout=5)
+                        success_injected = True
                     except urllib.error.HTTPError as e:
-                        logger.info(f"[{self.user_id}] Received {e.code} from callback (expected)")
-                    success_injected = True
+                        # CLI returns 302 which is fine, or 403 if it blocked us (but Host fixes 403)
+                        logger.info(f"[{self.user_id}] Received {e.code} from ipv6 callback")
+                        success_injected = True
                 except Exception as e:
                     logger.warning(f"[{self.user_id}] IPv6 callback failed: {e}. Trying IPv4...")
                     callback_url = f"http://127.0.0.1:{port}/callback?code={code}&state={self.oauth_state}"
                     try:
                         import urllib.error
+                        req = urllib.request.Request(
+                            callback_url,
+                            headers={"Host": f"localhost:{port}", "User-Agent": "Mozilla/5.0"}
+                        )
                         try:
-                            urllib.request.urlopen(callback_url, timeout=5)
+                            urllib.request.urlopen(req, timeout=5)
+                            success_injected = True
                         except urllib.error.HTTPError as e:
-                            logger.info(f"[{self.user_id}] Received {e.code} from ipv4 callback (expected)")
-                        success_injected = True
+                            logger.info(f"[{self.user_id}] Received {e.code} from ipv4 callback")
+                            success_injected = True
                     except Exception as e2:
                         logger.error(f"[{self.user_id}] IPv4 Callback failed: {e2}")
 
